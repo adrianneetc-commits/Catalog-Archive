@@ -280,46 +280,58 @@ const run = async () => {
                 return text.replace(/\n{3,}/g, '\n\n').trim();
             }
 
-            const selectors = [
-                '.shared-conversation-turn', 
-                '.p-message-content', 
-                'code', 
-                'pre', 
-                '.markdown',
-                'div[role="article"]'
-            ];
-            
-            const elements = Array.from(document.querySelectorAll(selectors.join(',')));
-            
             let markdown = `# ${title}\n\n`;
-            let seenText = new Set();
             let count = 0;
 
-            elements.forEach((el) => {
-                const rawText = el.innerText.trim();
+            // Target top-level conversation turn containers in DOM order
+            const turnContainers = Array.from(document.querySelectorAll('.shared-conversation-turn, conversation-turn, .turn-container'));
 
-                if (!rawText || rawText.length <= 10 || seenText.has(rawText) || rawText === title) {
-                    return;
+            if (turnContainers.length > 0) {
+                turnContainers.forEach((turn) => {
+                    // Check for User query element inside this turn
+                    const userEl = turn.querySelector('.user-query, .user-query-container, .query-text, [data-test-id="user-query"], user-query');
+                    // Check for Model/Gemini response element inside this turn
+                    const modelEl = turn.querySelector('.markdown, .model-response-text, .p-message-content, message-content');
+
+                    if (userEl) {
+                        const userText = collapseBlankLines(childrenToMarkdown(userEl)) || userEl.innerText.trim();
+                        if (userText) {
+                            markdown += `### User\n\n${userText}\n\n---\n\n`;
+                            count++;
+                        }
+                    }
+
+                    if (modelEl) {
+                        const modelText = collapseBlankLines(childrenToMarkdown(modelEl)) || modelEl.innerText.trim();
+                        if (modelText) {
+                            markdown += `### Gemini\n\n${modelText}\n\n---\n\n`;
+                            count++;
+                        }
+                    }
+                });
+            } else {
+                // Fallback for direct query matching if turn wrappers aren't present
+                const userNodes = Array.from(document.querySelectorAll('.user-query, .query-text, [data-test-id="user-query"], user-query'));
+                const modelNodes = Array.from(document.querySelectorAll('.markdown, .model-response-text, .p-message-content'));
+
+                const maxLen = Math.max(userNodes.length, modelNodes.length);
+                for (let i = 0; i < maxLen; i++) {
+                    if (userNodes[i]) {
+                        const userText = collapseBlankLines(childrenToMarkdown(userNodes[i])) || userNodes[i].innerText.trim();
+                        if (userText) {
+                            markdown += `### User\n\n${userText}\n\n---\n\n`;
+                            count++;
+                        }
+                    }
+                    if (modelNodes[i]) {
+                        const modelText = collapseBlankLines(childrenToMarkdown(modelNodes[i])) || modelNodes[i].innerText.trim();
+                        if (modelText) {
+                            markdown += `### Gemini\n\n${modelText}\n\n---\n\n`;
+                            count++;
+                        }
+                    }
                 }
-
-                const isCodeBlock = el.tagName === 'PRE' || (el.tagName === 'CODE' && el.closest('pre'));
-                const isStandaloneCode = el.tagName === 'CODE' && !el.closest('pre');
-
-                if (isCodeBlock) {
-                    const lang = detectLanguage(el) || 'text';
-                    markdown += `\`\`\`${lang}\n${rawText}\n\`\`\`\n\n`;
-                } else if (isStandaloneCode) {
-                    markdown += '`' + rawText + '`\n\n';
-                } else {
-                    const isUser = el.closest('.user-query') || rawText.toLowerCase().startsWith('you\n');
-                    const label = isUser ? "### User" : "### Gemini";
-                    const formatted = collapseBlankLines(childrenToMarkdown(el)) || rawText;
-                    markdown += `${label}\n\n${formatted}\n\n---\n\n`;
-                }
-
-                seenText.add(rawText);
-                count++;
-            });
+            }
 
             return { markdown, title, count };
         }, KNOWN_LANGS);
