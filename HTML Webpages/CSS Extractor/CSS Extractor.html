@@ -1,0 +1,288 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CSS Extractor</title>
+    <style>
+        :root {
+            --bg-color: #0f172a;
+            --card-bg: #1e293b;
+            --text-color: #f8fafc;
+            --text-muted: #94a3b8;
+            --accent: #38bdf8;
+            --accent-hover: #0ea5e9;
+            --border: #334155;
+            --success: #22c55e;
+        }
+
+        body {
+            font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            margin: 0;
+            padding: 2rem;
+            display: flex;
+            justify-content: center;
+            min-height: 100vh;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 800px;
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+        }
+
+        header h1 {
+            margin: 0 0 0.5rem 0;
+            font-size: 1.75rem;
+        }
+
+        header p {
+            margin: 0;
+            color: var(--text-muted);
+        }
+
+        .card {
+            background-color: var(--card-bg);
+            border: 1px solid var(--border);
+            border-radius: 0.75rem;
+            padding: 1.5rem;
+            box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1);
+        }
+
+        .upload-area {
+            border: 2px dashed var(--border);
+            border-radius: 0.5rem;
+            padding: 2rem;
+            text-align: center;
+            cursor: pointer;
+            transition: border-color 0.2s;
+        }
+
+        .upload-area:hover {
+            border-color: var(--accent);
+        }
+
+        input[type="file"] {
+            display: none;
+        }
+
+        .btn {
+            background-color: var(--accent);
+            color: var(--bg-color);
+            font-weight: 600;
+            padding: 0.5rem 1rem;
+            border: none;
+            border-radius: 0.375rem;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+
+        .btn:hover {
+            background-color: var(--accent-hover);
+        }
+
+        .output-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 0.75rem;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+        }
+
+        .output-header h2 {
+            font-size: 1.25rem;
+            margin: 0;
+        }
+
+        .button-group {
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        pre {
+            background-color: #090d16;
+            border: 1px solid var(--border);
+            border-radius: 0.5rem;
+            padding: 1rem;
+            overflow-x: auto;
+            max-height: 400px;
+            margin: 0;
+            font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+            font-size: 0.875rem;
+            color: #e2e8f0;
+        }
+
+        .hidden {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <header>
+            <h1>CSS Extractor</h1>
+            <p>Upload an HTML file to instantly pull and view all of its embedded and linked stylesheets.</p>
+        </header>
+
+        <div class="card">
+            <label class="upload-area" id="dropZone">
+                <input type="file" id="fileInput" accept=".html,.htm">
+                <div id="uploadText">
+                    <strong>Click to upload</strong> or drag and drop your HTML file here
+                </div>
+            </label>
+        </div>
+
+        <div class="card hidden" id="resultCard">
+            <div class="output-header">
+                <h2>Extracted Stylesheet</h2>
+                <div class="button-group">
+                    <button class="btn" id="copyBtn">Copy CSS</button>
+                    <button class="btn" id="saveBtn">Save As...</button>
+                </div>
+            </div>
+            <pre><code id="cssOutput"></code></pre>
+        </div>
+    </div>
+
+    <script>
+        const fileInput = document.getElementById('fileInput');
+        const dropZone = document.getElementById('dropZone');
+        const resultCard = document.getElementById('resultCard');
+        const cssOutput = document.getElementById('cssOutput');
+        const copyBtn = document.getElementById('copyBtn');
+        const saveBtn = document.getElementById('saveBtn');
+        const uploadText = document.getElementById('uploadText');
+
+        let originalFileName = 'extracted-styles';
+
+        fileInput.addEventListener('change', handleFileSelect);
+
+        // Drag and drop handlers
+        ['dragenter', 'dragover'].forEach(eventName => {
+            dropZone.addEventListener(eventName, (e) => {
+                e.preventDefault();
+                dropZone.style.borderColor = 'var(--accent)';
+            }, false);
+        });
+
+        ['dragleave', 'drop'].forEach(eventName => {
+            dropZone.addEventListener(eventName, (e) => {
+                e.preventDefault();
+                dropZone.style.borderColor = 'var(--border)';
+            }, false);
+        });
+
+        dropZone.addEventListener('drop', (e) => {
+            const dt = e.dataTransfer;
+            const files = dt.files;
+            if (files.length) {
+                fileInput.files = files;
+                handleFileSelect({ target: fileInput });
+            }
+        });
+
+        function handleFileSelect(e) {
+            const file = e.target.files[0];
+            if (!file) return;
+
+            // Capture base file name without extension for the CSS export
+            originalFileName = file.name.substring(0, file.name.lastIndexOf('.')) || file.name;
+            uploadText.innerHTML = `Selected file: <strong>${file.name}</strong>`;
+
+            const reader = new FileReader();
+            reader.onload = function(event) {
+                const htmlContent = event.target.result;
+                extractStyles(htmlContent);
+            };
+            reader.readAsText(file);
+        }
+
+        function extractStyles(html) {
+            const parser = new DOMParser();
+            const doc = parser.parseFromString(html, 'text/html');
+            
+            let combinedCSS = '';
+
+            // 1. Extract internal <style> tags
+            const styleTags = doc.querySelectorAll('style');
+            styleTags.forEach((style, index) => {
+                combinedCSS += `/* --- Internal Style Tag [${index + 1}] --- */\n`;
+                combinedCSS += style.textContent.trim() + '\n\n';
+            });
+
+            // 2. Extract external linked stylesheets (<link rel="stylesheet">)
+            const linkTags = doc.querySelectorAll('link[rel="stylesheet"]');
+            linkTags.forEach((link, index) => {
+                const href = link.getAttribute('href');
+                combinedCSS += `/* --- Linked Stylesheet [${index + 1}]: ${href} --- */\n`;
+                combinedCSS += `/* (External file contents cannot be loaded client-side without fetching, but reference is preserved) */\n\n`;
+            });
+
+            if (!combinedCSS.trim()) {
+                combinedCSS = '/* No inline <style> tags found in the uploaded document. */';
+            }
+
+            cssOutput.textContent = combinedCSS.trim();
+            resultCard.classList.remove('hidden');
+        }
+
+        copyBtn.addEventListener('click', () => {
+            navigator.clipboard.writeText(cssOutput.textContent).then(() => {
+                const originalText = copyBtn.textContent;
+                copyBtn.textContent = 'Copied!';
+                copyBtn.style.backgroundColor = 'var(--success)';
+                setTimeout(() => {
+                    copyBtn.textContent = originalText;
+                    copyBtn.style.backgroundColor = '';
+                }, 2000);
+            });
+        });
+
+        // "Save As" download functionality
+        saveBtn.addEventListener('click', () => {
+            const blob = new Blob([cssOutput.textContent], { type: 'text/css;charset=utf-8' });
+            
+            // Check if modern File System Access API is supported (provides a native Save As prompt)
+            if ('showSaveFilePicker' in window) {
+                const opts = {
+                    suggestedName: `${originalFileName}-styles.css`,
+                    types: [{
+                        description: 'Stylesheet File',
+                        accept: { 'text/css': ['.css'] },
+                    }],
+                };
+                window.showSaveFilePicker(opts).then(handle => {
+                    handle.createWritable().then(writable => {
+                        writable.write(blob).then(() => writable.close());
+                    });
+                }).catch(err => {
+                    // Fallback if user cancels the prompt
+                    if (err.name !== 'AbortError') {
+                        triggerDownloadFallback(blob);
+                    }
+                });
+            } else {
+                triggerDownloadFallback(blob);
+            }
+        });
+
+        function triggerDownloadFallback(blob) {
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `${originalFileName}-styles.css`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+        }
+    </script>
+</body>
+</html>
