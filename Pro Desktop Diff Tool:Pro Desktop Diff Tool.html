@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>Pro Desktop Diff Tool</title>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&display=swap">
+    <style>
+        :root {
+            --bg: #0d1117; --surface: #161b22; --surface-inline: #21262d;
+            --text: #c9d1d9; --text-muted: #8b949e; --text-dim: #484f58;
+            --accent: #58a6ff; --border: #30363d;
+            --add-text: #3fb950; --add-bg: rgba(46, 160, 67, 0.15);
+            --rm-text: #f85149; --rm-bg: rgba(248, 81, 73, 0.15);
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: "JetBrains Mono", monospace;
+            background: var(--bg); color: var(--text);
+            display: flex; flex-direction: column; height: 100vh;
+        }
+
+        /* Top Navigation */
+        header {
+            background: var(--surface); border-bottom: 1px solid var(--border);
+            padding: 12px 24px; display: flex; align-items: center; justify-content: space-between;
+        }
+        .file-inputs { display: flex; gap: 20px; }
+        .input-group { display: flex; flex-direction: column; gap: 4px; }
+        .input-group label { font-size: 10px; text-transform: uppercase; color: var(--text-muted); font-weight: 700; }
+        input[type="file"] { font-size: 12px; color: var(--text-muted); }
+
+        /* Main Diff Area */
+        main { flex: 1; overflow-y: auto; padding: 20px; }
+        .diff-container { max-width: 1200px; margin: 0 auto; }
+        
+        .chunk { 
+            border: 1px solid var(--border); border-radius: 6px; 
+            margin-bottom: 20px; overflow: hidden; background: var(--bg);
+        }
+        .chunk-header {
+            background: var(--surface-inline); padding: 8px 16px;
+            display: flex; align-items: center; justify-content: space-between;
+            border-bottom: 1px solid var(--border);
+        }
+        .chunk-info { font-size: 11px; font-weight: 700; color: var(--accent); }
+        
+        /* Controls */
+        .controls { display: flex; gap: 8px; }
+        .btn {
+            font-family: inherit; font-size: 11px; font-weight: 600;
+            padding: 4px 12px; border-radius: 4px; border: 1px solid var(--border);
+            background: var(--surface); color: var(--text-muted); cursor: pointer; transition: 0.2s;
+        }
+        .btn:hover { border-color: var(--text-dim); }
+        .btn.active[data-action="keep"] { background: var(--add-text); color: #000; border-color: var(--add-text); }
+        .btn.active[data-action="revert"] { background: var(--rm-text); color: #fff; border-color: var(--rm-text); }
+
+        /* Lines */
+        .line { display: flex; font-size: 13px; line-height: 1.6; border-bottom: 1px solid rgba(255,255,255,0.02); }
+        .line:last-child { border-bottom: none; }
+        .ln { width: 50px; text-align: right; padding-right: 12px; color: var(--text-dim); user-select: none; border-right: 1px solid var(--border); }
+        .pfx { width: 30px; text-align: center; user-select: none; font-weight: 700; }
+        .code { flex: 1; padding-left: 12px; white-space: pre-wrap; word-break: break-all; }
+
+        .add { background: var(--add-bg); color: #aff5b4; }
+        .rm { background: var(--rm-bg); color: #ffa198; }
+        .ctx { color: var(--text-muted); }
+
+        /* Revert State */
+        .chunk.reverted .add { opacity: 0.3; text-decoration: line-through; }
+        .chunk.reverted .rm { background: rgba(248, 81, 73, 0.25); color: #fff; }
+
+        /* Footer */
+        footer {
+            background: var(--surface); border-top: 1px solid var(--border);
+            padding: 16px 24px; display: flex; justify-content: center;
+        }
+        #saveBtn {
+            background: var(--accent); color: #051d3b; border: none;
+            padding: 10px 32px; border-radius: 6px; font-weight: 700;
+            cursor: pointer; font-family: inherit; font-size: 14px;
+        }
+        #saveBtn:hover { filter: brightness(1.1); }
+        #saveBtn:disabled { opacity: 0.5; cursor: not-allowed; }
+    </style>
+</head>
+<body>
+
+<header>
+    <div style="font-weight:700; font-size: 18px; color: var(--accent)">DiffEngine Desktop</div>
+    <div class="file-inputs">
+        <div class="input-group">
+            <label>Original File</label>
+            <input type="file" id="file1">
+        </div>
+        <div class="input-group">
+            <label>Modified File</label>
+            <input type="file" id="file2">
+        </div>
+    </div>
+</header>
+
+<main id="diffArea">
+    <div style="text-align: center; margin-top: 100px; color: var(--text-dim);">
+        <h2>Select two files to generate a diff</h2>
+        <p style="font-size: 14px; margin-top: 10px;">Accept or Revert changes per chunk before saving.</p>
+    </div>
+</main>
+
+<footer>
+    <button id="saveBtn" disabled>Save Merged File</button>
+</footer>
+
+<script>
+    let f1c = "", f2c = "", ops = [], states = {};
+
+    const read = (f) => new Promise(res => {
+        const r = new FileReader();
+        r.onload = e => res(e.target.result);
+        r.readAsText(f);
+    });
+
+    const initDiff = async () => {
+        const file1 = document.getElementById('file1').files[0];
+        const file2 = document.getElementById('file2').files[0];
+        if(!file1 || !file2) return;
+
+        f1c = await read(file1);
+        f2c = await read(file2);
+
+        const oldL = f1c.split('\n'), newL = f2c.split('\n');
+        const m = oldL.length, n = newL.length;
+        
+        let dp = Array.from({length: m + 1}, () => new Int32Array(n + 1));
+        for(let i=1; i<=m; i++) {
+            for(let j=1; j<=n; j++) {
+                dp[i][j] = (oldL[i-1] === newL[j-1]) ? dp[i-1][j-1] + 1 : Math.max(dp[i][j-1], dp[i-1][j]);
+            }
+        }
+
+        ops = []; let i = m, j = n;
+        while(i > 0 || j > 0) {
+            if(i > 0 && j > 0 && oldL[i-1] === newL[j-1]) { ops.unshift({t:'ctx', l:oldL[i-1]}); i--; j--; }
+            else if(j > 0 && (i === 0 || dp[i][j-1] >= dp[i-1][j])) { ops.unshift({t:'add', l:newL[j-1]}); j--; }
+            else { ops.unshift({t:'rm', l:oldL[i-1]}); i--; }
+        }
+
+        let cid = 0, inCh = false;
+        ops.forEach(op => {
+            if(op.t !== 'ctx') { if(!inCh) inCh=true; op.c = cid; }
+            else { if(inCh) { cid++; inCh=false; } op.c = -1; }
+        });
+        
+        states = {};
+        for(let k=0; k<=cid; k++) states[k] = 'keep';
+        document.getElementById('saveBtn').disabled = false;
+        render();
+    };
+
+    document.getElementById('file1').onchange = initDiff;
+    document.getElementById('file2').onchange = initDiff;
+
+    function render() {
+        const main = document.getElementById('diffArea');
+        let html = '<div class="diff-container">', last = -2;
+
+        ops.forEach((op, idx) => {
+            if(op.c >= 0 && op.c !== last) {
+                if(last >= 0) html += `</div></div>`;
+                html += `<div class="chunk" id="c-${op.c}">
+                    <div class="chunk-header">
+                        <span class="chunk-info">CHUNK ${op.c + 1}</span>
+                        <div class="controls">
+                            <button class="btn active" data-action="keep" onclick="set(${op.c},'keep')">ACCEPT</button>
+                            <button class="btn" data-action="revert" onclick="set(${op.c},'revert')">REVERT</button>
+                        </div>
+                    </div><div class="lines">`;
+                last = op.c;
+            } else if (op.c < 0 && last >= 0) {
+                html += `</div></div>`;
+                last = -2;
+            }
+
+            const pfx = op.t === 'add' ? '+' : (op.t === 'rm' ? '-' : ' ');
+            html += `<div class="line ${op.t}"><span class="ln">${idx+1}</span><span class="pfx">${pfx}</span><span class="code">${escape(op.l)}</span></div>`;
+        });
+
+        main.innerHTML = html + '</div>';
+    }
+
+    function escape(s) {
+        return s ? s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;') : ' ';
+    }
+
+    window.set = (id, s) => {
+        states[id] = s;
+        const el = document.getElementById(`c-${id}`);
+        el.classList.toggle('reverted', s === 'revert');
+        el.querySelectorAll('.btn').forEach(b => b.classList.toggle('active', b.dataset.action === s));
+    };
+
+    document.getElementById('saveBtn').onclick = () => {
+        const final = ops.map(op => {
+            if(op.t === 'ctx') return op.l;
+            if(op.t === 'add' && states[op.c] === 'keep') return op.l;
+            if(op.t === 'rm' && states[op.c] === 'revert') return op.l;
+            return null;
+        }).filter(x => x !== null).join('\n');
+
+        const blob = new Blob([final], {type: 'text/plain'});
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = "merged_version.txt";
+        a.click();
+    };
+</script>
+
+</body>
+</html>
