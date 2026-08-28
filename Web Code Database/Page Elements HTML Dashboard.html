@@ -1,4 +1,10 @@
-/* --- Internal Style Tag [1] --- */
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Current Page Dashboard</title>
+<style>
 /*
  * _base.css — Global design tokens, element defaults, page shell, and tiny utilities.
  * ALWAYS included in every page.
@@ -436,6 +442,7 @@ section:first-child {
 		overflow-x: auto;
 	}
 }
+
 /*
  * hero — Full-width hero section with title, subtitle, and optional eyebrow.
  *
@@ -483,135 +490,80 @@ section:first-child {
 		font-size: clamp(32px, 8vw, 48px);
 	}
 }
+
 /*
- * button — Styled link/button with variant and size options.
- * Options: data-variant="primary"|"secondary"|"tertiary"
- *          data-size="small"|"large"
+ * stat-grid — Grid of stat cards with label, big number, caption, and trend.
  *
  * HTML:
- * <a class="notion-button" data-variant="primary" href="#">Primary</a>
+ * <section class="notion-stat-grid">
+ *   <div class="notion-stat">
+ *     <p class="notion-stat-label">Metric</p>
+ *     <p class="notion-stat-value">42%</p>
+ *     <p class="notion-stat-caption">Short explanation.</p>
+ *     <span class="notion-stat-trend">&#x2197; trend</span>
+ *   </div>
+ * </section>
  */
 
-.notion-button {
+.notion-stat-grid {
+	display: grid;
+	grid-template-columns: repeat(3, minmax(0, 1fr));
+	gap: 12px;
+	margin: 20px 0 6px;
+}
+.notion-stat {
+	padding: 16px;
+	border: 1px solid var(--notion-border-soft);
+	border-radius: 10px;
+	background: var(--notion-surface);
+	box-shadow: var(--notion-shadow);
+}
+.notion-stat-label {
+	margin: 0 0 6px;
+	color: var(--notion-text-soft);
+	font-size: 13px;
+	font-weight: 600;
+}
+.notion-stat-value {
+	margin: 0;
+	font-size: 32px;
+	line-height: 1.05;
+	letter-spacing: -0.04em;
+	font-weight: 700;
+	font-variant-numeric: tabular-nums;
+}
+.notion-stat-caption {
+	margin: 8px 0 0;
+	color: var(--notion-text-soft);
+	font-size: 13px;
+}
+.notion-stat-trend {
 	display: inline-flex;
 	align-items: center;
-	justify-content: center;
-	gap: 8px;
-	padding: 8px 16px;
-	font-size: 14px;
-	font-weight: 500;
-	line-height: 1.2;
-	border-radius: 8px;
-	border: 1px solid transparent;
-	cursor: pointer;
-	transition:
-		background 150ms,
-		box-shadow 150ms,
-		border-color 150ms;
-	text-decoration: none;
-	font-family: inherit;
-	white-space: nowrap;
-}
-.notion-button:focus-visible {
-	outline: 2px solid var(--notion-blue);
-	outline-offset: 2px;
-}
-/* Primary */
-.notion-button[data-variant="primary"],
-.notion-button:not([data-variant]) {
-	background: var(--notion-blue);
-	color: #ffffff;
-	border-color: transparent;
-}
-.notion-button[data-variant="primary"]:hover,
-.notion-button:not([data-variant]):hover {
-	background: color-mix(in srgb, var(--notion-blue) 82%, black);
-}
-/* Secondary */
-.notion-button[data-variant="secondary"] {
+	gap: 4px;
+	margin-top: 10px;
+	padding: 3px 7px;
+	border-radius: 999px;
 	background: var(--notion-blue-bg);
 	color: var(--notion-blue);
-	border-color: transparent;
-}
-.notion-button[data-variant="secondary"]:hover {
-	background: color-mix(in srgb, var(--notion-blue-bg) 70%, var(--notion-blue));
-}
-/* Tertiary */
-.notion-button[data-variant="tertiary"] {
-	background: transparent;
-	color: var(--notion-text);
-	border-color: transparent;
-}
-.notion-button[data-variant="tertiary"]:hover {
-	background: var(--notion-surface-hover);
-}
-/* Small modifier */
-.notion-button[data-size="small"] {
-	padding: 4px 12px;
 	font-size: 12px;
+	font-weight: 650;
 }
-/* Large modifier */
-.notion-button[data-size="large"] {
-	padding: 12px 24px;
-	font-size: 16px;
-}
-.notion-button-group {
-	display: flex;
-	flex-wrap: wrap;
-	gap: 8px;
-	margin-top: 24px;
+
+/* -- Responsive: 1080px ----------------------------------- */
+@media (max-width: 1080px) {
+	.notion-stat-grid {
+		grid-template-columns: repeat(2, 1fr);
+	}
 }
 
 /* -- Responsive: 820px ------------------------------------ */
 @media (max-width: 820px) {
-	.notion-button-group {
-		flex-direction: column;
-	}
-	.notion-button-group .notion-button {
-		width: 100%;
+	.notion-stat-grid {
+		grid-template-columns: 1fr;
 	}
 }
-/*
- * callout — Highlighted info box with icon and text.
- * Options: data-tone="blue" | "green" | "orange" | "red" (default: yellow)
- *
- * HTML:
- * <div class="notion-callout" data-tone="blue">
- *   <div>💡</div>
- *   <div><strong>Note</strong><p>Helpful context.</p></div>
- * </div>
- */
 
-.notion-callout {
-	display: grid;
-	grid-template-columns: auto 1fr;
-	gap: 14px;
-	margin: 18px 0;
-	padding: 16px 18px;
-	border-radius: var(--notion-radius);
-	background: var(--notion-yellow-bg);
-	box-shadow: inset 0 0 0 1px var(--notion-border-soft);
-}
-.notion-callout[data-tone="blue"] {
-	background: var(--notion-blue-bg);
-}
-.notion-callout[data-tone="green"] {
-	background: var(--notion-green-bg);
-}
-.notion-callout[data-tone="orange"] {
-	background: var(--notion-orange-bg);
-}
-.notion-callout[data-tone="red"] {
-	background: var(--notion-red-bg);
-}
-.notion-callout strong {
-	display: block;
-	margin-bottom: 3px;
-}
-.notion-callout p {
-	margin: 0;
-	color: var(--notion-text-soft);
-}
 /*
  * card-grid — Grid of clickable cards with icon, title, and description.
  *
@@ -667,163 +619,334 @@ section:first-child {
 		grid-template-columns: 1fr;
 	}
 }
+
 /*
- * flow — Horizontal step-by-step process with arrow connectors.
+ * bar-chart — Horizontal bar chart with labels and values.
+ * Options: data-muted (dims a bar), data-tone="green" | "orange" | "red"
  *
  * HTML:
- * <div class="notion-flow">
- *   <div class="notion-flow-step">
- *     <strong>Step</strong>
- *     <span>Detail</span>
- *   </div>
- *   <div class="notion-flow-step">
- *     <strong>Next</strong>
- *     <span>Detail</span>
+ * <div class="notion-bar-chart">
+ *   <div class="notion-bar" style="--value: 80%">
+ *     <span class="notion-bar-label">A350-900ULR</span>
+ *     <div class="notion-bar-track">
+ *       <div class="notion-bar-fill"></div>
+ *     </div>
+ *     <span class="notion-bar-value">9,700 nm</span>
  *   </div>
  * </div>
  */
 
-.notion-flow {
+.notion-bar-chart {
 	display: grid;
-	grid-template-columns: repeat(4, minmax(0, 1fr));
-	gap: 10px;
-	margin: 18px 0;
-}
-.notion-flow-step {
-	position: relative;
-	padding: 14px;
+	gap: 12px;
+	margin-top: 16px;
+	padding: 16px;
 	border: 1px solid var(--notion-border-soft);
 	border-radius: 10px;
 	background: var(--notion-surface);
 }
-.notion-flow-step:not(:last-child)::after {
-	content: "\2192";
-	position: absolute;
-	right: -15px;
-	top: 50%;
-	transform: translateY(-50%);
-	z-index: 1;
-	color: var(--notion-text-faint);
-	font-weight: 700;
-}
-.notion-flow-step span {
-	display: block;
-	margin-top: 4px;
-	color: var(--notion-text-soft);
+.notion-bar {
+	--value: 50%;
+	display: grid;
+	grid-template-columns: minmax(90px, 0.4fr) 2fr auto;
+	align-items: center;
+	gap: 10px;
 	font-size: 14px;
+}
+.notion-bar-label {
+	font-weight: 600;
+}
+.notion-bar[data-muted] {
+	opacity: 0.35;
+}
+.notion-bar[data-muted] .notion-bar-fill {
+	display: none;
+}
+.notion-bar[data-muted] .notion-bar-value {
+	visibility: hidden;
+}
+.notion-bar-track {
+	height: 10px;
+	overflow: hidden;
+	border-radius: 999px;
+	background: var(--notion-gray-bg);
+	box-shadow: inset 0 0 0 1px var(--notion-border-soft);
+}
+.notion-bar-fill {
+	height: 100%;
+	width: var(--value);
+	border-radius: 999px;
+	background: var(--notion-blue);
+}
+.notion-bar-value {
+	color: var(--notion-text-soft);
+	font-variant-numeric: tabular-nums;
+	font-size: 13px;
+}
+.notion-bar[data-tone="green"] .notion-bar-fill {
+	background: var(--notion-chart-3);
+}
+.notion-bar[data-tone="orange"] .notion-bar-fill {
+	background: var(--notion-chart-5);
+}
+.notion-bar[data-tone="red"] .notion-bar-fill {
+	background: var(--notion-chart-8);
 }
 
 /* -- Responsive: 820px ------------------------------------ */
 @media (max-width: 820px) {
-	.notion-flow {
+	.notion-bar {
 		grid-template-columns: 1fr;
-	}
-	.notion-flow-step:not(:last-child)::after {
-		content: "\2193";
-		right: 50%;
-		top: auto;
-		bottom: -19px;
-		transform: translateX(50%);
+		gap: 6px;
 	}
 }
+
 /*
- * code — Alias for the base <pre><code> element.
+ * callout — Highlighted info box with icon and text.
+ * Options: data-tone="blue" | "green" | "orange" | "red" (default: yellow)
+ *
+ * HTML:
+ * <div class="notion-callout" data-tone="blue">
+ *   <div>💡</div>
+ *   <div><strong>Note</strong><p>Helpful context.</p></div>
+ * </div>
+ */
+
+.notion-callout {
+	display: grid;
+	grid-template-columns: auto 1fr;
+	gap: 14px;
+	margin: 18px 0;
+	padding: 16px 18px;
+	border-radius: var(--notion-radius);
+	background: var(--notion-yellow-bg);
+	box-shadow: inset 0 0 0 1px var(--notion-border-soft);
+}
+.notion-callout[data-tone="blue"] {
+	background: var(--notion-blue-bg);
+}
+.notion-callout[data-tone="green"] {
+	background: var(--notion-green-bg);
+}
+.notion-callout[data-tone="orange"] {
+	background: var(--notion-orange-bg);
+}
+.notion-callout[data-tone="red"] {
+	background: var(--notion-red-bg);
+}
+.notion-callout strong {
+	display: block;
+	margin-bottom: 3px;
+}
+.notion-callout p {
+	margin: 0;
+	color: var(--notion-text-soft);
+}
+
+/*
+ * table — Alias for the base <table> element.
  * No additional styles beyond _base.css defaults.
  *
  * HTML:
- * <pre class="notion-code"><code>monthly = principal * r * (1 + r)^n / ((1 + r)^n - 1)</code></pre>
+ * <table class="notion-table">
+ *   <thead><tr><th>Item</th><th>Meaning</th></tr></thead>
+ *   <tbody><tr><td><strong>Example</strong></td><td>Details</td></tr></tbody>
+ * </table>
  */
 
-/* .notion-code is now an alias -- bare <pre><code> is styled identically */
+/* .notion-table is now an alias -- bare <table> is styled identically */
 
-/* Supplemental layout polish for this artifact */
-:root {
-	--notion-page-width: 1040px;
-}
-body {
-	background:
-		radial-gradient(circle at top left, rgba(39, 131, 222, 0.12), transparent 32rem),
-		linear-gradient(180deg, var(--notion-bg-soft), var(--notion-bg));
-}
-.split-section {
-	display: grid;
-	grid-template-columns: minmax(0, 1.1fr) minmax(280px, 0.9fr);
-	gap: 18px;
-	align-items: stretch;
-}
-.preview-card {
+/*
+ * pie — Pie/donut chart with conic-gradient and legend.
+ *
+ * HTML:
+ * <div class="notion-pie">
+ *   <div class="notion-pie-chart" style="background: conic-gradient(
+ *     var(--notion-chart-1) 0% 55%,
+ *     var(--notion-chart-3) 55% 80%,
+ *     var(--notion-chart-2) 80% 100%);"></div>
+ *   <div class="notion-pie-legend">
+ *     <div class="notion-pie-legend-item">
+ *       <span class="notion-pie-dot" style="background: var(--notion-chart-1)"></span>
+ *       <span>Category A</span>
+ *       <span class="notion-pie-value">55%</span>
+ *     </div>
+ *   </div>
+ * </div>
+ */
+
+.notion-pie {
+	display: inline-grid;
+	grid-template-columns: auto auto;
+	gap: 36px;
+	align-items: center;
+	margin: 16px 0;
 	padding: 24px;
 	border: 1px solid var(--notion-border-soft);
-	border-radius: 18px;
-	background: color-mix(in srgb, var(--notion-surface) 92%, transparent);
-	box-shadow: var(--notion-shadow);
-}
-.preview-card h2 {
-	margin-top: 18px;
-}
-.window-dots {
-	display: flex;
-	gap: 7px;
-	margin-bottom: 4px;
-}
-.window-dots span {
-	width: 10px;
-	height: 10px;
-	border-radius: 999px;
-	background: var(--notion-border);
-}
-.window-dots span:nth-child(1) { background: #ff6b6b; }
-.window-dots span:nth-child(2) { background: #ffd166; }
-.window-dots span:nth-child(3) { background: #47c1b6; }
-.split-section .notion-flow {
-	grid-template-columns: 1fr;
-	margin: 0;
-}
-.split-section .notion-flow-step {
-	min-height: 92px;
-	display: flex;
-	flex-direction: column;
-	justify-content: center;
-}
-.split-section .notion-flow-step:not(:last-child)::after {
-	content: "↓";
-	right: 50%;
-	top: auto;
-	bottom: -18px;
-	transform: translateX(50%);
-}
-.example-grid {
-	display: grid;
-	grid-template-columns: minmax(0, 0.85fr) minmax(320px, 1.15fr);
-	gap: 18px;
-	align-items: center;
-	padding: 22px;
-	border: 1px solid var(--notion-border-soft);
-	border-radius: 18px;
+	border-radius: 10px;
 	background: var(--notion-surface);
-	box-shadow: var(--notion-shadow);
 }
-.example-grid h2 {
-	margin-top: 10px;
+.notion-pie-chart {
+	width: 200px;
+	height: 200px;
+	border-radius: 50%;
+	flex-shrink: 0;
 }
-.example-grid pre {
+.notion-pie-legend {
+	display: grid;
+	gap: 10px;
+}
+.notion-pie-legend-item {
+	display: flex;
+	align-items: center;
+	gap: 10px;
+	font-size: 14px;
+	color: var(--notion-text);
+}
+.notion-pie-legend-item > span:nth-child(2) {
+	min-width: 90px;
+}
+.notion-pie-dot {
+	width: 12px;
+	height: 12px;
+	border-radius: 3px;
+}
+.notion-pie-value {
+	color: var(--notion-text-soft);
+	font-variant-numeric: tabular-nums;
+	font-weight: 600;
+}
+.notion-pie-row {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	gap: 28px;
+	margin: 16px 0;
+}
+.notion-pie-row .notion-pie {
 	margin: 0;
+	flex-shrink: 0;
 }
-.notion-quote {
-	margin-top: 34px;
-	padding: 22px 24px;
-	border: 1px solid var(--notion-border-soft);
-	border-left: 4px solid var(--notion-blue);
-	border-radius: 16px;
-	background: var(--notion-blue-bg);
+.notion-pie-text {
+	flex: 1;
+	min-width: 220px;
+	color: var(--notion-text-soft);
 }
+.notion-pie-text p {
+	margin: 0 0 10px;
+}
+.notion-pie-text p:last-child {
+	margin-bottom: 0;
+}
+
+/* -- Responsive: 820px ------------------------------------ */
 @media (max-width: 820px) {
-	.split-section,
-	.example-grid {
+	.notion-pie {
 		grid-template-columns: 1fr;
-	}
-	.preview-card,
-	.example-grid {
-		padding: 18px;
+		justify-items: center;
+		gap: 24px;
 	}
 }
+
+/* Supplemental dashboard polish */
+.notion-shell  padding-top: 10px; padding-bottom: 48px; 
+.notion-eyebrow  display:inline-flex; padding:4px 10px; border-radius:999px; background:var(--notion-blue-bg); color:var(--notion-blue); font-size:13px; font-weight:700; 
+pre  white-space: pre-wrap; overflow:auto; 
+code  font-variant-ligatures: none; 
+</style>
+</head>
+<body>
+<main class="notion-shell">
+  <section class="notion-hero">
+    <span class="notion-eyebrow">Current Notion page dashboard</span>
+    <h1>HTML Page Anatomy</h1>
+    <p>A compact visual dashboard of the content currently on this page: a bookmark block, two embed placeholders, and one escaped HTML example showing a basic webpage structure.</p>
+  </section>
+
+  <section class="notion-stat-grid">
+    <div class="notion-stat">
+      <p class="notion-stat-label">Visible content blocks</p>
+      <p class="notion-stat-value">4</p>
+      <p class="notion-stat-caption">Bookmark, embed, HTML sample, embed</p>
+      <span class="notion-stat-trend">Page composition</span>
+    </div>
+    <div class="notion-stat">
+      <p class="notion-stat-label">Embed blocks</p>
+      <p class="notion-stat-value">2</p>
+      <p class="notion-stat-caption">Empty embed placeholders detected</p>
+      <span class="notion-stat-trend">50% of blocks</span>
+    </div>
+    <div class="notion-stat">
+      <p class="notion-stat-label">HTML elements shown</p>
+      <p class="notion-stat-value">6</p>
+      <p class="notion-stat-caption">html, head, title, body, p, strong</p>
+      <span class="notion-stat-trend">Example structure</span>
+    </div>
+  </section>
+
+  <section>
+    <h2>Block mix</h2>
+    <div class="notion-bar-chart">
+      <div class="notion-bar" style="--value: 50%" data-tone="green">
+        <span class="notion-bar-label">Embeds</span>
+        <div class="notion-bar-track"><div class="notion-bar-fill"></div></div>
+        <span class="notion-bar-value">2 / 4</span>
+      </div>
+      <div class="notion-bar" style="--value: 25%" data-tone="orange">
+        <span class="notion-bar-label">Bookmark</span>
+        <div class="notion-bar-track"><div class="notion-bar-fill"></div></div>
+        <span class="notion-bar-value">1 / 4</span>
+      </div>
+      <div class="notion-bar" style="--value: 25%">
+        <span class="notion-bar-label">HTML sample</span>
+        <div class="notion-bar-track"><div class="notion-bar-fill"></div></div>
+        <span class="notion-bar-value">1 / 4</span>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <h2>HTML anatomy</h2>
+    <div class="notion-card-grid">
+      <article class="notion-card"><div class="notion-card-icon">🏷️</div><h3>Document type</h3><p><code>&lt;!doctype html&gt;</code> tells the browser to render the file as modern HTML.</p></article>
+      <article class="notion-card"><div class="notion-card-icon">🧠</div><h3>Head metadata</h3><p><code>&lt;head&gt;</code> holds the page title and behind-the-scenes information.</p></article>
+      <article class="notion-card"><div class="notion-card-icon">👁️</div><h3>Body content</h3><p><code>&lt;body&gt;</code> contains what visitors actually see on the webpage.</p></article>
+    </div>
+  </section>
+
+  <section>
+    <h2>Element frequency</h2>
+    <div class="notion-bar-chart">
+      <div class="notion-bar" style="--value: 100%"><span class="notion-bar-label">strong</span><div class="notion-bar-track"><div class="notion-bar-fill"></div></div><span class="notion-bar-value">2 uses</span></div>
+      <div class="notion-bar" style="--value: 50%" data-tone="green"><span class="notion-bar-label">html</span><div class="notion-bar-track"><div class="notion-bar-fill"></div></div><span class="notion-bar-value">1 use</span></div>
+      <div class="notion-bar" style="--value: 50%" data-tone="green"><span class="notion-bar-label">head</span><div class="notion-bar-track"><div class="notion-bar-fill"></div></div><span class="notion-bar-value">1 use</span></div>
+      <div class="notion-bar" style="--value: 50%" data-tone="green"><span class="notion-bar-label">title</span><div class="notion-bar-track"><div class="notion-bar-fill"></div></div><span class="notion-bar-value">1 use</span></div>
+      <div class="notion-bar" style="--value: 50%" data-tone="green"><span class="notion-bar-label">body</span><div class="notion-bar-track"><div class="notion-bar-fill"></div></div><span class="notion-bar-value">1 use</span></div>
+      <div class="notion-bar" style="--value: 50%" data-tone="green"><span class="notion-bar-label">p</span><div class="notion-bar-track"><div class="notion-bar-fill"></div></div><span class="notion-bar-value">1 use</span></div>
+    </div>
+  </section>
+
+  <section>
+    <div class="notion-callout" data-tone="blue">
+      <div>✨</div>
+      <div>
+        <strong>Quick read</strong>
+        <p>The page is acting like an HTML learning canvas: it has an example webpage snippet plus empty embed space for rendering an artifact like this dashboard.</p>
+      </div>
+    </div>
+    <h2>Source sample</h2>
+    <pre><code>&lt;!doctype html&gt;
+&lt;html&gt;
+&lt;head&gt;
+&lt;title&gt;This is the title of the webpage!&lt;/title&gt;
+&lt;/head&gt;
+&lt;body&gt;
+&lt;p&gt;This is an example paragraph. Anything in the &lt;strong&gt;body&lt;/strong&gt; tag will appear on the page, just like this &lt;strong&gt;p&lt;/strong&gt; tag and its contents.&lt;/p&gt;
+&lt;/body&gt;
+&lt;/html&gt;</code></pre>
+  </section>
+
+  <p class="notion-footer">Generated from the visible content on the current Notion page.</p>
+</main>
+</body>
+</html>

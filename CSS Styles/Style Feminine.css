@@ -1,0 +1,40 @@
+    <style>
+        @page {
+            size: A4;
+            margin: 20mm;
+            background-color: #282a36;
+        }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            color: #f8f8f2;
+            background-color: #282a36;
+            margin: 0;
+            padding: 0;
+            line-height: 1.6;
+        }
+        h1, h2 {
+            color: #bd93f9;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+            background-color: #44475a;
+        }
+        th, td {
+            padding: 12px;
+            border: 1px solid #6272a4;
+            text-align: left;
+        }
+        th {
+            background-color: #6272a4;
+            color: #ff79c6;
+        }
+        code {
+            background-color: #282a36;
+            color: #50fa7b;
+            padding: 2px 4px;
+            border-radius: 4px;
+            font-family: 'Courier New', Courier, monospace;
+        }
+    </style>

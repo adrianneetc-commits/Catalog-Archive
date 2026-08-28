@@ -1,0 +1,202 @@
+[
+  {
+    "name": "----001",
+    "group": "ACTIONS EXPORTING 2026",
+    "classification": "General Utility",
+    "description": "No description provided",
+    "id": "7D14DF8F-6727-45D9-843B-1C86A08A124F"
+  },
+  {
+    "name": "----001 (copy)",
+    "group": "ACTIONS EXPORTING 2026",
+    "classification": "System: Clipboard",
+    "description": "No description provided",
+    "id": "31502B71-B5F4-48A0-92D9-C469B6E61C67"
+  },
+  {
+    "name": "Unnamed Action 1",
+    "group": "ACTIONS EXPORTING 2026",
+    "classification": "General Utility",
+    "description": "No description provided",
+    "id": "43C6E84E-D479-426D-9536-A8B504CCF145"
+  },
+  {
+    "name": "Unnamed Action 2",
+    "group": "ACTIONS EXPORTING 2026",
+    "classification": "General Utility",
+    "description": "No description provided",
+    "id": "AAE42F2C-555B-41B5-9258-57F227ECFBF6"
+  },
+  {
+    "name": "Unnamed Action 3",
+    "group": "ACTIONS EXPORTING 2026",
+    "classification": "General Utility",
+    "description": "No description provided",
+    "id": "DB4018C0-1535-47E2-9D88-6329965DB058"
+  },
+  {
+    "name": "Unnamed Action 4",
+    "group": "ACTIONS EXPORTING 2026",
+    "classification": "General Utility",
+    "description": "No description provided",
+    "id": "78E7D7B6-8203-4BEB-BF52-3ABD70F394FB"
+  },
+  {
+    "name": "Unnamed Action 5",
+    "group": "ACTIONS EXPORTING 2026",
+    "classification": "General Utility",
+    "description": "No description provided",
+    "id": "D0B3502C-62AE-4180-89B4-81F906E883EA"
+  },
+  {
+    "name": "Provide Name of Action",
+    "group": "ACTIONS EXPORTING 2026",
+    "classification": "General Utility",
+    "description": "No description provided",
+    "id": "7F094097-8387-4604-9CC4-3A26C7105146"
+  },
+  {
+    "name": "Unnamed Action 6",
+    "group": "ACTIONS EXPORTING 2026",
+    "classification": "General Utility",
+    "description": "No description provided",
+    "id": "2A65A2E4-F6BD-46C7-8069-AFA63602C1C8"
+  },
+  {
+    "name": "Dupe",
+    "group": "ACTIONS EXPORTING 2026",
+    "classification": "General Utility",
+    "description": "No description provided",
+    "id": "E5E13A7B-EAD2-4397-B830-9D1526CC0FE8"
+  },
+  {
+    "name": "Launch Action",
+    "group": "ACTIONS EXPORTING 2026",
+    "classification": "System: Draft Management",
+    "description": "*created by [@FlohGro](https://twitter.com/Flohgro) / more on my [Blog](http://www.flohgro.com/blog)*\n\n## Launch Action\n\nThis action can be used as a launcher of Actions from an ActionGroup in Drafts.\n\nYou can configure the action to always show the actions from one Action Group in a prompt - the selected action will be launched.\n\nIf you don’t specify an Action Group the action will first present a prompt where you have to select the Action Group and afterwards prompt for the Action you want to run.\n\n## [Configuration]\n\n\nTo configure the action to use a specific Action Group you have to edit the „Define Template Step“ in the action. In the Text field „Template“ replace `undefined` with the name of the Action Group which shall be used by the action.\n\nTo let the action query for all Action Groups set it back to „undefined“.\n\nIf you want to use this action for several Action Groups, just duplicate it and configure the names of the Action Groups.\n\nI recommend to add a suffix to the action name to identify the Action Group you configured.\n\n## [Usage]\n\n\nUse this Action to quickly launch an action from a specific Action Group or all your Action Groups.\n\nYou can assign it to a keyboard shortcut or add it to an action bar. \n\n---\n\n*If you find this useful and want to support me you can* \n\n<a href=\"https://www.buymeacoffee.com/flohgro\" target=\"_blank\"><img src=\"https://cdn.buymeacoffee.com/buttons/v2/default-blue.png\" alt=\"Buy Me A Coffee\" style=\"height: 51px !important;width: 209px !important;\" ></a>",
+    "id": "4EA02910-B1D2-47BF-BC1B-E77A293E610B"
+  },
+  {
+    "name": "Action Parser 001",
+    "group": "ACTIONS EXPORTING 2026",
+    "classification": "General Utility",
+    "description": "No description provided",
+    "id": "655BDBD1-A8AD-498D-A2BD-96BA2DCFC219"
+  },
+  {
+    "name": "Action Parser 001 (copy)",
+    "group": "ACTIONS EXPORTING 2026",
+    "classification": "System: Clipboard",
+    "description": "No description provided",
+    "id": "81913BDF-3E26-464C-937F-B74026AE3D8B"
+  },
+  {
+    "name": "Unnamed Action 7",
+    "group": "ACTIONS EXPORTING 2026",
+    "classification": "General Utility",
+    "description": "No description provided",
+    "id": "DDEDF26D-C96B-4892-A0DC-F790A185C4B9"
+  },
+  {
+    "name": "Unnamed Action 8",
+    "group": "ACTIONS EXPORTING 2026",
+    "classification": "General Utility",
+    "description": "No description provided",
+    "id": "5B9FC407-64B3-454B-AB2F-D11DEF1E6715"
+  },
+  {
+    "name": "Unnamed Action 9",
+    "group": "ACTIONS EXPORTING 2026",
+    "classification": "General Utility",
+    "description": "No description provided",
+    "id": "02E8B64E-C44C-4567-A468-10734ADBA0CD"
+  },
+  {
+    "name": "Unnamed Action 10",
+    "group": "ACTIONS EXPORTING 2026",
+    "classification": "General Utility",
+    "description": "No description provided",
+    "id": "F5450F47-B5D8-4CCE-8FC2-09D017E39AA9"
+  },
+  {
+    "name": "Unnamed Action 11",
+    "group": "ACTIONS EXPORTING 2026",
+    "classification": "General Utility",
+    "description": "No description provided",
+    "id": "D9F5F127-7968-4E55-9D24-F4F364D8B0CB"
+  },
+  {
+    "name": "☰ Actions: HTML",
+    "group": "ACTIONS EXPORTING 2026",
+    "classification": "Text: HTML/Markdown",
+    "description": "*created by [@FlohGro](https://social.lol/@flohgro) / more on my [Blog](http://www.flohgro.com/)*\n\n## action runner\n\nConfigure an action group and define actions that shall be included or excluded and this action will present you a prompt to select one from the resulting actions. It will run the action afterwards.\n\nThis is useful for the action bar or an action group where you want to combine different actions without making several aliases of them.\n\n### [Configuration]\n\nThe action uses the newly introduced (January 2025) \"Configure Value\" steps. The first time you run the action you will see a prompt that asks you to configure the following values:\n\n- Action Group Name (required): add the exact name of the Action Group\n- Include Action Names (optional): add names of actions that you want to explicitly include (all others will be ignored)\n- Omit Action Names (optional): add names of actions that you want to explicitly exclude (all others will be included)\n\n> please note: if you configure both Include and Omit Action Names, only the Include Action Names will be considered.\n\nIf you want to change you're configuration, long press / right click on the action and select \"Configure,...\" and the configuration prompt will appear again.\n\n---\n\n*If you find this useful and want to support me you can [donate](https://flohgro.com/donate) or buy me a coffee* \n\n<div style=\"display: flex; gap: 10px; align-items: center;\">\n<a href=\"https://www.buymeacoffee.com/flohgro\" target=\"_blank\" style=\"display: block; height: 60px; width: 220px;\">\n<img src=\"https://cdn.buymeacoffee.com/buttons/v2/default-blue.png\"\nalt=\"Buy Me A Coffee\" style=\"height: 100%; width: 100%; object-fit: contain;\">\n</a>\n<a href=\"https://www.patreon.com/flohgro\" target=\"_blank\" style=\"display: block; height: 60px; width: 220px;\">\n<img src=\"https://user-images.githubusercontent.com/13785667/162812708-55b96cdc-8c32-4433-a340-6dd4c1f7326d.jpg\"\nalt=\"Become A Patreon\" style=\"height: 100%; width: 100%; object-fit: contain;\">\n</a>\n<a href=\"https://ko-fi.com/flohgro\" target=\"_blank\" style=\"display: block; height: 60px; width: 220px;\">\n<img src=\"https://az743702.vo.msecnd.net/cdn/kofi1.png?v=0\"\nalt=\"Buy Me a Coffee at ko-fi.com\" style=\"height: 100%; width: 100%; object-fit: contain;\">\n</a>\n</div>",
+    "id": "433AC453-2693-4632-947F-AD689BFE882E"
+  },
+  {
+    "name": "Script for Actions 0720",
+    "group": "ACTIONS EXPORTING 2026",
+    "classification": "General Utility",
+    "description": "No description provided",
+    "id": "CEC8647C-FFBE-4BDA-98B6-B300E5B5165B"
+  },
+  {
+    "name": "Script 002 - 072026",
+    "group": "ACTIONS EXPORTING 2026",
+    "classification": "General Utility",
+    "description": "No description provided",
+    "id": "3F601198-FC60-4E25-BFC2-D08657B92538"
+  },
+  {
+    "name": " Export Actions as Detailed JSON — for Drafts (Script step)",
+    "group": "ACTIONS EXPORTING 2026",
+    "classification": "Data: JSON Formatting",
+    "description": "No description provided",
+    "id": "328DB1BF-1B9D-4899-B87A-5BA854612CA2"
+  },
+  {
+    "name": "Web View | Markdown",
+    "group": "ACTIONS EXPORTING 2026",
+    "classification": "General Utility",
+    "description": "Markdown preview which builds some css styles based on current dark or light mode.",
+    "id": "5F6B7BB3-8B47-42C6-9147-B3B6730BC0F3"
+  },
+  {
+    "name": "UndoRedo",
+    "group": "Actions Catalog",
+    "classification": "System: State/Undo",
+    "description": "No description provided",
+    "id": "E74F7DB7-54FF-4D10-A99C-93850A18E7ED"
+  },
+  {
+    "name": "Toggle Theme",
+    "group": "Actions Catalog",
+    "classification": "General Utility",
+    "description": "Toggle between light and dark themes.",
+    "id": "4319B2C5-BDC1-4B18-9414-BA9F0536E9AD"
+  },
+  {
+    "name": "Switch Syntax",
+    "group": "Actions Catalog",
+    "classification": "Text: HTML/Markdown",
+    "description": "Simply syntax switcher using an HTML view, with a filter to quickly target desired syntax",
+    "id": "BD50D2DE-738C-4B82-814A-79C39091C599"
+  },
+  {
+    "name": "Toggle Filters",
+    "group": "Actions Catalog",
+    "classification": "General Utility",
+    "description": "Toggle the visibility of the tag filtering sidebar.",
+    "id": "BB859B5B-C0D2-42E2-8994-9CACFD122E99"
+  },
+  {
+    "name": "SET UP ACTIONS",
+    "group": "Actions Catalog",
+    "classification": "General Utility",
+    "description": "No description provided",
+    "id": "B222B8B4-86EF-4255-B097-C53AAFE75581"
+  },
+  {
+    "name": "Add Draft to list",
+    "group": "Actions Catalog",
+    "classification": "System: Draft Management",
+    "description": "*created by [@FlohGro](https://social.lol/@flohgro) / more on my [Blog](http://www.flohgro.com/)*\n\n## Add Draft to list\n\nVariant of the [Add to List action](https://directory.getdrafts.com/a/1Vz).\n\nThis action distinguishes between checklists and normal lists and will add a markdown checkbox before the content into the list if a draft with the checklist tag is selected. \nAdditionally it displays the content of the draft in the prompt so it’s easier to use with the „On My Mind“ action group.\n\n## [Configuration]\n\nAdapt the tags in the script to your personal settings in your library.\nDo not use the same tag for checklists and normal lists. If you don’t want to use checklists, just set it to a string that won’t return any drafts (e.g. hallensvalfbeuylndveks)\n\n\n```\nconst listTag = \"3 list\";\nconst checklistTag = \"3 checklist\"\n

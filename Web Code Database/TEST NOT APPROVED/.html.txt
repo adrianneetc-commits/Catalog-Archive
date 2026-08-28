@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <style>
+        @page {
+            size: A4;
+            margin: 20mm;
+            background-color: #282a36;
+        }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            color: #f8f8f2;
+            background-color: #282a36;
+            margin: 0;
+            padding: 0;
+            line-height: 1.6;
+        }
+        h1, h2 {
+            color: #bd93f9;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+            background-color: #44475a;
+        }
+        th, td {
+            padding: 12px;
+            border: 1px solid #6272a4;
+            text-align: left;
+        }
+        th {
+            background-color: #6272a4;
+            color: #ff79c6;
+        }
+        code {
+            background-color: #282a36;
+            color: #50fa7b;
+            padding: 2px 4px;
+            border-radius: 4px;
+            font-family: 'Courier New', Courier, monospace;
+        }
+    </style>
+</head>
+<body>
+    <h1>a-Shell Reference Guide</h1>
+    <p>Comprehensive reference for core a-Shell commands.</p>
+    <table>
+        <thead>
+            <tr>
+                <th>Command</th>
+                <th>Category</th>
+                <th>Description</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr><td><code>ls</code></td><td>Navigation</td><td>Lists files and directories in the current location.</td></tr>
+            <tr><td><code>cd</code></td><td>Navigation</td><td>Changes the current working directory.</td></tr>
+            <tr><td><code>pwd</code></td><td>Navigation</td><td>Prints the path of the current working directory.</td></tr>
+            <tr><td><code>cat</code></td><td>Text</td><td>Concatenates and displays the contents of a file.</td></tr>
+            <tr><td><code>grep</code></td><td>Text</td><td>Searches for patterns within text files.</td></tr>
+            <tr><td><code>vim / ed</code></td><td>Text</td><td>Text editors for creating or modifying files.</td></tr>
+            <tr><td><code>cp</code></td><td>File Mgmt</td><td>Copies files or directories.</td></tr>
+            <tr><td><code>mv</code></td><td>File Mgmt</td><td>Moves or renames files and directories.</td></tr>
+            <tr><td><code>rm</code></td><td>File Mgmt</td><td>Removes (deletes) files.</td></tr>
+            <tr><td><code>mkdir</code></td><td>File Mgmt</td><td>Creates a new directory.</td></tr>
+            <tr><td><code>touch</code></td><td>File Mgmt</td><td>Creates an empty file or updates timestamp of an existing one.</td></tr>
+            <tr><td><code>curl / scp</code></td><td>Networking</td><td>Used for transferring files and data over a network.</td></tr>
+            <tr><td><code>nslookup</code></td><td>Networking</td><td>Performs DNS lookups to query domain information.</td></tr>
+            <tr><td><code>ping</code></td><td>Networking</td><td>Tests connectivity to a network host.</td></tr>
+            <tr><td><code>whois</code></td><td>Networking</td><td>Queries databases for domain registration information.</td></tr>
+            <tr><td><code>ifconfig</code></td><td>Networking</td><td>Displays or configures network interface parameters.</td></tr>
+            <tr><td><code>python</code></td><td>Scripting</td><td>Executes Python scripts.</td></tr>
+            <tr><td><code>lua</code></td><td>Scripting</td><td>Executes Lua scripts.</td></tr>
+            <tr><td><code>pdflatex</code></td><td>Processing</td><td>Compiles LaTeX documents into PDF format.</td></tr>
+            <tr><td><code>ffmpeg</code></td><td>Media</td><td>Powerful tool for image, audio, and video conversion.</td></tr>
+            <tr><td><code>pkg</code></td><td>Package</td><td>Used to manage external packages (e.g., <code>pkg list</code>).</td></tr>
+        </tbody>
+    </table>
+</body>
+</html>

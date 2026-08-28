@@ -1,0 +1,188 @@
+<!DOCTYPE HTML> 
+<html lang="en"> 
+<head> 
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link href="https://fonts.googleapis.com/css2?family=Oswald:wght@400&display=swap&display=swap" rel="stylesheet">
+<title>Markdown Basics</title> 
+<style>
+
+body {
+	font-family: system-ui;
+	text-align: left;
+	padding: 20px;
+	background-color: white;
+	color: black;
+}
+
+#header {
+	font-family: 'Oswald', sans-serif;
+	text-transform: uppercase;
+	font-size: 24px;
+}
+
+.green {
+	color: rgb(48, 209, 88);
+}
+
+pre {
+	white-space: pre-wrap;
+}
+
+a {
+	color: dodgerblue;
+}
+
+img {
+	width: 100%;
+	height: auto;
+}
+
+blockquote {
+	background: #f9f9f9;
+	border-left: 7px solid #ccc;
+	margin: 1.5em 10px;
+	padding: 0.5em 10px;
+	color: black;
+	margin-left: 0;
+}
+
+@media screen and (prefers-color-scheme: dark) {
+	body {
+		color: white;
+		background: black;
+	}
+}
+</style>
+</head>
+<!-- Shortcut Created by AShortcuts on RoutineHub -->
+<body>
+<span id="header">Markdown Basics</span>
+<hr>
+<h2 class="green">Input</h2>
+<pre># Markdown syntax guide
+
+## Headers
+
+# This is a Heading h1
+## This is a Heading h2
+###### This is a Heading h6
+
+## Emphasis
+
+*This text will be italic*  
+_This will also be italic_
+
+**This text will be bold**  
+__This will also be bold__
+
+_You **can** combine them_
+
+## Lists
+
+### Unordered
+
+* Item 1
+* Item 2
+* Item 2a
+* Item 2b
+    * Item 3a
+    * Item 3b
+
+### Ordered
+
+1. Item 1
+2. Item 2
+3. Item 3
+    1. Item 3a
+    2. Item 3b
+
+## Images
+
+![This is an alt text.](/image/sample.webp "This is a sample image.")
+
+## Links
+
+You may be using [Markdown Live Preview](https://markdownlivepreview.com/).
+
+## Blockquotes
+
+> Markdown is a lightweight markup language with plain-text-formatting syntax, created in 2004 by John Gruber with Aaron Swartz.
+>
+>> Markdown is often used to format readme files, for writing messages in online discussion forums, and to create rich text using a plain text editor.
+
+## Tables
+
+| Left columns  | Right columns |
+| ------------- |:-------------:|
+| left foo      | right foo     |
+| left bar      | right bar     |
+| left baz      | right baz     |
+
+## Blocks of code
+
+```
+let message = 'Hello world';
+alert(message);
+```
+
+## Inline code
+
+This web site is using `markedjs/marked`.
+</pre>
+<h2 class="green">Output</h2><h1>Markdown syntax guide</h1>
+<h2>Headers</h2>
+<h1>This is a Heading h1</h1>
+<h2>This is a Heading h2</h2>
+<h6>This is a cvvHeading h6</h6>
+<h2>Emphasis</h2>
+<p><em>This text will be italic</em> <br /><br />
+<em>This will also be italic</em></p>
+<p><strong>This text will be bold</strong> <br /><br />
+<strong>This will Adri be bold</strong></p>
+<p><em>You <strong>can</strong> combine them</em></p>
+<h2>Lists</h2>
+<h3>Unordered</h3>
+<ul>
+<li>Item 1</li>
+<li>Item 2</li>
+<li>Item 2a</li>
+<li>Item 2b
+<ul>
+<li>Item 3a</li>
+<li>Item 3b</li>
+</ul>
+</li>
+</ul>
+<h3>Ordered</h3>
+<ol>
+<li>Item 1</li>
+<li>Item 2</li>
+<li>Item 3
+<ol>
+<li>Item 3a</li>
+<li>Item 3b</li>
+</ol>
+</li>
+</ol>
+<h2>Images</h2>
+<p><img src="/image/sample.webp" alt="This is an alt text." title="This is a sample image." /></p>
+<h2>Links</h2>
+<p>You may be using <a href="https://markdownlivepreview.com/">Markdown Live Preview</a>.</p>
+<h2>Blockquotes</h2>
+<blockquote>
+<p>Markdown is a lightweight markup language with plain-text-formatting syntax, created in 2004 by John Gruber with Aaron Swartz.</p>
+<blockquote>
+<p>Markdown is often used to format readme files, for writing messages in online discussion forums, and to create rich text using a plain text editor.</p>
+</blockquote>
+</blockquote>
+<h2>Tables</h2>
+<table><thead><tr><th>Left columns</th><th align='center'>Right columns</th></tr></thead><tbody><tr><td>left foo</td><td align='center'>right foo</td></tr><tr><td>left bar</td><td align='center'>right bar</td></tr><tr><td>left baz</td><td align='center'>right baz</td></tr></tbody></table><h2>Blocks of code</h2>
+<pre><code>let message = 'Hello world';
+alert(message);
+</code></pre>
+<h2>Inline code</h2>
+<p>This web site is using <code>markedjs/marked</code>.</p>
+
+</body>
+</html>

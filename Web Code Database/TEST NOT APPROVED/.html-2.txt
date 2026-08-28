@@ -1,0 +1,70 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<meta http-equiv="Content-Style-Type" content="text/css">
+<title></title>
+/* ── WEBTOOL-AID-1S9X9 ─────────────────────────────────────────── */
+
+<meta name="Generator" content="Cocoa HTML Writer">
+<style type="text/css">
+p.p1 {margin: 0.0px 0.0px 0.0px 0.0px; font: 12.0px Helvetica; color: #000000}
+span.s1 {font-family: 'Helvetica'; font-weight: normal; font-style: normal; font-size: 12.00px}
+</style>
+</head>
+<body>
+<p class="p1"><span class="s1">&lt;!DOCTYPE html&gt;</span></p>
+<p class="p1"><span class="s1">&lt;html lang="en"&gt;</span></p>
+<p class="p1"><span class="s1">&lt;head&gt;</span></p>
+<p class="p1"><span class="s1">&lt;meta charset="UTF-8"&gt;</span></p>
+<p class="p1"><span class="s1">&lt;meta name="viewport" content="width=device-width, initial-scale=1.0"&gt;</span></p>
+<p class="p1"><span class="s1">&lt;title&gt;Commit Vault Databases&lt;/title&gt;</span></p>
+<p class="p1"><span class="s1">&lt;style&gt;</span></p>
+<p class="p1"><span class="s1">* { box-sizing: border-box; margin: 0; padding: 0; }</span></p>
+<p class="p1"><span class="s1">body {</span></p>
+<p class="p1"><span class="s1">font-family: ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, sans-serif;</span></p>
+<p class="p1"><span class="s1">font-size: 14px;</span></p>
+<p class="p1"><span class="s1">color: #37352f;</span></p>
+<p class="p1"><span class="s1">background: #fff;</span></p>
+<p class="p1"><span class="s1">padding: 24px 28px;</span></p>
+<p class="p1"><span class="s1">line-height: 1.6;</span></p>
+<p class="p1"><span class="s1">}</span></p>
+<p class="p1"><span class="s1">.title {</span></p>
+<p class="p1"><span class="s1">font-size: 18px;</span></p>
+<p class="p1"><span class="s1">font-weight: 700;</span></p>
+<p class="p1"><span class="s1">margin-bottom: 6px;</span></p>
+<p class="p1"><span class="s1">}</span></p>
+<p class="p1"><span class="s1">.description {</span></p>
+<p class="p1"><span class="s1">color: #6b6b6b;</span></p>
+<p class="p1"><span class="s1">margin-bottom: 20px;</span></p>
+<p class="p1"><span class="s1">font-size: 13.5px;</span></p>
+<p class="p1"><span class="s1">}</span></p>
+<p class="p1"><span class="s1">.description a { color: #6b6b6b; text-decoration: underline; text-decoration-color:</span></p>
+<p class="p1"><span class="s1">rgba(107,107,107,0.4); }</span></p>
+<p class="p1"><span class="s1">.description a:hover { color: #37352f; }</span></p>
+<p class="p1"><span class="s1">.grid {</span></p>
+<p class="p1"><span class="s1">display: grid;</span></p>
+<p class="p1"><span class="s1">grid-template-columns: 1fr 1fr 1fr;</span></p>
+<p class="p1"><span class="s1">gap: 12px;</span></p>
+<p class="p1"><span class="s1">margin-bottom: 20px;</span></p>
+<p class="p1"><span class="s1">}</span></p>
+<p class="p1"><span class="s1">.section-label {</span></p>
+<p class="p1"><span class="s1">font-size: 11px;</span></p>
+<p class="p1"><span class="s1">font-weight: 600;</span></p>
+<p class="p1"><span class="s1">text-transform: uppercase;</span></p>
+<p class="p1"><span class="s1">letter-spacing: 0.05em;</span></p>
+<p class="p1"><span class="s1">color: #9b9a97;</span></p>
+<p class="p1"><span class="s1">margin-bottom: 6px;</span></p>
+<p class="p1"><span class="s1">}</span></p>
+<p class="p1"><span class="s1">.section-block {</span></p>
+<p class="p1"><span class="s1">background: #f7f6f3;</span></p>
+<p class="p1"><span class="s1">border-radius: 6px;</span></p>
+<p class="p1"><span class="s1">padding: 12px 14px;</span></p>
+<p class="p1"><span class="s1">}</span></p>
+<p class="p1"><span class="s1">ul {</span></p>
+<p class="p1"><span class="s1">list-style: none;</span></p>
+<p class="p1"><span class="s1">padding: 0;</span></p>
+<p class="p1"><span class="s1">}</span></p>
+<p class="p1"><span class="s1">ul li {</span></p>
+</body>
+</html>

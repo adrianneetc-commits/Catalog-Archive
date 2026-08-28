@@ -1,0 +1,89 @@
+{
+  "markdown_cheatsheet": {
+    "headings": {
+      "syntax": [
+        "# Heading 1",
+        "## Heading 2",
+        "### Heading 3",
+        "#### Heading 4",
+        "##### Heading 5",
+        "###### Heading 6"
+      ]
+    },
+    "formatting": {
+      "italic": ["_Italic_", "*Italic*"],
+      "bold": ["_ Bold_", "**Bold**"],
+      "strikethrough": "~~Strikethrough~~",
+      "subscript": "~example~",
+      "superscript": "^example^"
+    },
+    "lists": {
+      "unordered": ["•", "+", "*"],
+      "ordered": ["1.", "1)"],
+      "tasks": {
+        "unchecked": ["+[]", "☐", "[]"],
+        "checked": ["* [x]", "☑", "[x]"]
+      }
+    },
+    "links_and_images": {
+      "links": {
+        "standard": "[Link] (notable.md)",
+        "reference": "[Link reference] [1]",
+        "auto_linking": ["https://notable.md", "<https://notable.md>"],
+        "email": "<fabio@notable.md>"
+      },
+      "images": {
+        "standard": "! [Image] (https://notable.md/favicon.ico)",
+        "reference": "! [Image reference] [1]"
+      }
+    },
+    "advanced_elements": {
+      "footnotes": {
+        "numeric": "[^1]",
+        "alphanumeric": "[^fn]",
+        "inline": "^^[Inline content]"
+      },
+      "quotations": {
+        "standard": "> Quotation",
+        "nested": "> > Nested quotation"
+      },
+      "code": {
+        "inline": ["`code`", "``code``", "```code```"],
+        "blocks": ["Unfenced", "Fenced (~~~ or ~~~~)"],
+        "syntax_highlighting": "```js // code ```"
+      },
+      "tables": ["Regular", "Aligned (| Left | Center | Right |)"],
+      "math_science": {
+        "katex": "$$e^{i\\pi}+1=0$$",
+        "mhchem": "$\\ce{ H20}$",
+        "asciimath": "$\\delta e=mc^2\\delta$"
+      },
+      "diagrams": {
+        "mermaid": "graph LR; Start --> End"
+      }
+    },
+    "app_specific": {
+      "deep_linking": {
+        "attachment": "@attachment/icon.png",
+        "note": ["@note/Example.md", "[[Example]]"],
+        "tag": "@tag/Basics",
+        "search": "@search/linking"
+      },
+      "custom_tags": {
+        "markdown_tag": "<markdown> Embedded _Markdown_ </markdown>"
+      }
+    },
+    "html_support": {
+      "tags": [
+        "",
+        "<abbr title='Mister'>Mr.</abbr>",
+        "<center>",
+        "<dl><dt><dd>",
+        "<details><summary>",
+        "<kbd>",
+        "<mark>",
+        "<small>"
+      ]
+    }
+  }
+}

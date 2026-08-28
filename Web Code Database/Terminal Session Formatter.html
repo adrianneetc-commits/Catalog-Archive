@@ -1,0 +1,352 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Terminal Session Formatter</title>
+  <style>
+    :root {
+      --bg: #0f172a;
+      --card-bg: #1e293b;
+      --border: #334155;
+      --text: #e2e8f0;
+      --muted: #94a3b8;
+      --accent: #38bdf8;
+      --input-bubble: #1e1e38;
+      --response-bubble: #182635;
+      --code-bg: #0b1120;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    }
+
+    body {
+      background-color: var(--bg);
+      color: var(--text);
+      padding: 2rem;
+      min-height: 100vh;
+    }
+
+    .container {
+      max-width: 1000px;
+      margin: 0 auto;
+    }
+
+    h1 {
+      font-size: 1.75rem;
+      margin-bottom: 0.5rem;
+      color: #f8fafc;
+    }
+
+    p.subtitle {
+      color: var(--muted);
+      margin-bottom: 1.5rem;
+    }
+
+    .controls {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 1rem;
+      background: var(--card-bg);
+      padding: 1.5rem;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+      margin-bottom: 2rem;
+    }
+
+    .prompt-config {
+      display: flex;
+      gap: 1rem;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+
+    input[type="text"] {
+      background: var(--code-bg);
+      border: 1px solid var(--border);
+      color: var(--text);
+      padding: 0.5rem 0.75rem;
+      border-radius: 4px;
+      outline: none;
+    }
+
+    textarea {
+      width: 100%;
+      height: 160px;
+      background: var(--code-bg);
+      border: 1px solid var(--border);
+      color: var(--text);
+      padding: 0.75rem;
+      border-radius: 4px;
+      font-family: monospace;
+      resize: vertical;
+      outline: none;
+    }
+
+    .actions {
+      display: flex;
+      gap: 0.75rem;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+
+    button, label.btn {
+      background: #2563eb;
+      color: white;
+      border: none;
+      padding: 0.6rem 1.2rem;
+      border-radius: 4px;
+      cursor: pointer;
+      font-weight: 500;
+      transition: background 0.2s;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    button:hover, label.btn:hover {
+      background: #1d4ed8;
+    }
+
+    button.secondary {
+      background: #334155;
+    }
+
+    button.secondary:hover {
+      background: #475569;
+    }
+
+    input[type="file"] {
+      display: none;
+    }
+
+    #document-view {
+      display: flex;
+      flex-direction: column;
+      gap: 1.5rem;
+    }
+
+    .exchange {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      overflow: hidden;
+    }
+
+    .block {
+      padding: 1.25rem;
+      position: relative;
+    }
+
+    .block-header {
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      margin-bottom: 0.5rem;
+      font-weight: 700;
+    }
+
+    .input-block {
+      background: var(--input-bubble);
+      border-bottom: 1px solid var(--border);
+    }
+
+    .input-block .block-header {
+      color: #818cf8;
+    }
+
+    .response-block {
+      background: var(--response-bubble);
+    }
+
+    .response-block .block-header {
+      color: var(--accent);
+    }
+
+    pre {
+      font-family: "JetBrains Mono", Consolas, Monaco, monospace;
+      font-size: 0.9rem;
+      white-space: pre-wrap;
+      word-break: break-word;
+      line-height: 1.5;
+    }
+
+    .copy-btn {
+      position: absolute;
+      top: 0.75rem;
+      right: 0.75rem;
+      background: rgba(255, 255, 255, 0.08);
+      border: 1px solid var(--border);
+      color: var(--muted);
+      font-size: 0.75rem;
+      padding: 0.25rem 0.5rem;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+
+    .copy-btn:hover {
+      background: rgba(255, 255, 255, 0.15);
+      color: var(--text);
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Terminal Session Formatter</h1>
+    <p class="subtitle">Parse raw terminal output or session logs into organized prompt-and-response blocks.</p>
+
+    <div class="controls">
+      <div class="prompt-config">
+        <label for="prompt-pattern"><strong>Prompt Prefix / Pattern:</strong></label>
+        <input type="text" id="prompt-pattern" value="^(\$|>|User:)" placeholder="e.g. ^(\$|>|#)">
+        <span style="font-size: 0.8rem; color: var(--muted);">(Supports RegExp syntax)</span>
+      </div>
+
+      <textarea id="raw-input" placeholder="Paste your raw terminal output or transcript here..."></textarea>
+
+      <div class="actions">
+        <button onclick="parseSession()">Format Content</button>
+        <label class="btn secondary">
+          Upload File
+          <input type="file" id="file-upload" accept=".txt,.log" onchange="handleFileUpload(event)">
+        </label>
+        <button class="secondary" onclick="exportMarkdown()">Copy Full as Markdown</button>
+        <button class="secondary" onclick="savePage()">Save HTML to Device</button>
+      </div>
+    </div>
+
+    <div id="document-view"></div>
+  </div>
+
+  <script>
+    function parseSession() {
+      const raw = document.getElementById('raw-input').value;
+      const patternVal = document.getElementById('prompt-pattern').value;
+      const container = document.getElementById('document-view');
+      container.innerHTML = '';
+
+      if (!raw.trim()) return;
+
+      let regex;
+      try {
+        regex = new RegExp(patternVal);
+      } catch (e) {
+        regex = new RegExp('^\\$');
+      }
+
+      const lines = raw.split('\n');
+      const exchanges = [];
+      let currentExchange = null;
+
+      lines.forEach(line => {
+        if (regex.test(line)) {
+          if (currentExchange) {
+            exchanges.push(currentExchange);
+          }
+          currentExchange = {
+            input: line.replace(regex, '').trim() || line,
+            responseLines: []
+          };
+        } else if (currentExchange) {
+          currentExchange.responseLines.push(line);
+        } else {
+          currentExchange = {
+            input: 'Initial Context / Log',
+            responseLines: [line]
+          };
+        }
+      });
+
+      if (currentExchange) {
+        exchanges.push(currentExchange);
+      }
+
+      exchanges.forEach((ex, idx) => {
+        const responseText = ex.responseLines.join('\n').trim();
+        const exchangeEl = document.createElement('div');
+        exchangeEl.className = 'exchange';
+
+        exchangeEl.innerHTML = `
+          <div class="block input-block">
+            <span class="block-header">Input / Command</span>
+            <button class="copy-btn" onclick="copyText(this, ${JSON.stringify(ex.input)})">Copy</button>
+            <pre><code>${escapeHtml(ex.input)}</code></pre>
+          </div>
+          ${responseText ? `
+          <div class="block response-block">
+            <span class="block-header">Response / Output</span>
+            <button class="copy-btn" onclick="copyText(this, ${JSON.stringify(responseText)})">Copy</button>
+            <pre><code>${escapeHtml(responseText)}</code></pre>
+          </div>` : ''}
+        `;
+        container.appendChild(exchangeEl);
+      });
+    }
+
+    function handleFileUpload(event) {
+      const file = event.target.files[0];
+      if (!file) return;
+
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        document.getElementById('raw-input').value = e.target.result;
+        parseSession();
+      };
+      reader.readAsText(file);
+    }
+
+    function copyText(btn, text) {
+      navigator.clipboard.writeText(text).then(() => {
+        const orig = btn.innerText;
+        btn.innerText = 'Copied!';
+        setTimeout(() => { btn.innerText = orig; }, 1500);
+      });
+    }
+
+    function exportMarkdown() {
+      const exchanges = document.querySelectorAll('.exchange');
+      if (!exchanges.length) return;
+
+      let md = '';
+      exchanges.forEach(ex => {
+        const input = ex.querySelector('.input-block pre code')?.innerText || '';
+        const response = ex.querySelector('.response-block pre code')?.innerText || '';
+        
+        md += `### Input\n\`\`\`bash\n${input}\n\`\`\`\n\n`;
+        if (response) {
+          md += `### Response\n\`\`\`text\n${response}\n\`\`\`\n\n`;
+        }
+        md += `---\n\n`;
+      });
+
+      navigator.clipboard.writeText(md.trim()).then(() => {
+        alert('Parsed conversation copied to clipboard as Markdown.');
+      });
+    }
+
+    function savePage() {
+      const htmlContent = document.documentElement.outerHTML;
+      const blob = new Blob([htmlContent], { type: 'text/html' });
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = 'Terminal Session Formatter.html';
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+    }
+
+    function escapeHtml(str) {
+      return str
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#039;");
+    }
+  </script>
+</body>
+</html>
