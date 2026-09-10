@@ -1,0 +1,466 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Shortcuts Color Converter</title>
+    <style>
+        :root {
+            --bg: #1c1c1e;
+            --card: #2c2c2e;
+            --accent: #ff9f0a;
+            --text: #ffffff;
+            --subtle: #8e8e93;
+            --border: #3a3a3c;
+            --green: #34c759;
+            --red: #ff453a;
+        }
+
+        * { box-sizing: border-box; }
+
+        body {
+            font-family: -apple-system, sans-serif;
+            background-color: var(--bg);
+            color: var(--text);
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            min-height: 100vh;
+            margin: 0;
+            padding: 40px 16px;
+        }
+
+        .container {
+            background: var(--card);
+            padding: 24px;
+            border-radius: 20px;
+            width: 360px;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.4);
+        }
+
+        h2 {
+            margin: 0 0 18px;
+            font-size: 17px;
+            font-weight: 600;
+            letter-spacing: -0.2px;
+        }
+
+        .preview {
+            width: 100%;
+            height: 80px;
+            border-radius: 12px;
+            margin-bottom: 20px;
+            border: 2px solid var(--border);
+            transition: background-color 0.2s;
+        }
+
+        .input-group {
+            margin-bottom: 14px;
+        }
+
+        label {
+            display: block;
+            font-size: 11px;
+            color: var(--subtle);
+            margin-bottom: 5px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        input[type="text"],
+        input[type="number"] {
+            width: 100%;
+            padding: 11px 12px;
+            background: #1c1c1e;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            color: white;
+            font-family: "SF Mono", monospace;
+            font-size: 14px;
+        }
+
+        input[type="color"] {
+            width: 100%;
+            height: 45px;
+            padding: 5px;
+            background: #1c1c1e;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            cursor: pointer;
+        }
+
+        .btn-row {
+            display: flex;
+            gap: 8px;
+            margin-top: 10px;
+        }
+
+        button {
+            flex: 1;
+            padding: 12px 6px;
+            border: none;
+            border-radius: 12px;
+            font-weight: 700;
+            cursor: pointer;
+            font-size: 13px;
+            transition: opacity 0.15s;
+        }
+        button:active { opacity: 0.75; }
+
+        .btn-copy {
+            background-color: var(--accent);
+            color: black;
+        }
+
+        .btn-save {
+            background-color: #3a3a3c;
+            color: white;
+        }
+
+        .btn-hex {
+            background-color: #3a3a3c;
+            color: var(--accent);
+        }
+
+        .status {
+            text-align: center;
+            font-size: 12px;
+            margin-top: 12px;
+            color: var(--subtle);
+            min-height: 1.2em;
+        }
+
+        /* ── Saved Colors ── */
+        .section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin: 24px 0 12px;
+        }
+
+        .section-header h3 {
+            margin: 0;
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--subtle);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .clear-btn {
+            font-size: 12px;
+            color: var(--red);
+            background: none;
+            border: none;
+            padding: 0;
+            flex: none;
+            font-weight: 500;
+            cursor: pointer;
+        }
+
+        .color-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+        }
+
+        .color-swatch {
+            background: #1c1c1e;
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            overflow: hidden;
+            cursor: pointer;
+            transition: transform 0.15s, box-shadow 0.15s;
+            position: relative;
+        }
+
+        .color-swatch:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 16px rgba(0,0,0,0.4);
+        }
+
+        .swatch-color {
+            width: 100%;
+            height: 56px;
+        }
+
+        .swatch-info {
+            padding: 7px 8px 6px;
+        }
+
+        .swatch-label {
+            font-size: 11px;
+            font-weight: 600;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            color: var(--text);
+            background: transparent;
+            border: none;
+            width: 100%;
+            padding: 0;
+            cursor: text;
+            font-family: -apple-system, sans-serif;
+        }
+
+        .swatch-label:focus {
+            outline: none;
+            color: var(--accent);
+        }
+
+        .swatch-hex {
+            font-size: 10px;
+            color: var(--subtle);
+            font-family: "SF Mono", monospace;
+            margin-top: 2px;
+        }
+
+        .swatch-delete {
+            position: absolute;
+            top: 5px;
+            right: 5px;
+            width: 18px;
+            height: 18px;
+            background: rgba(0,0,0,0.55);
+            border: none;
+            border-radius: 50%;
+            color: #fff;
+            font-size: 11px;
+            line-height: 18px;
+            text-align: center;
+            padding: 0;
+            flex: none;
+            opacity: 0;
+            transition: opacity 0.15s;
+            cursor: pointer;
+        }
+
+        .color-swatch:hover .swatch-delete {
+            opacity: 1;
+        }
+
+        .empty-state {
+            text-align: center;
+            color: var(--subtle);
+            font-size: 13px;
+            padding: 20px 0 4px;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h2>🎨 Shortcuts Color Converter</h2>
+
+    <div id="preview" class="preview" style="background-color: #FF9F0A;"></div>
+
+    <div class="input-group">
+        <label>Visual Picker</label>
+        <input type="color" id="picker" value="#FF9F0A" oninput="fromPicker(this.value)">
+    </div>
+
+    <div class="input-group">
+        <label>Hex (RRGGBB)</label>
+        <input type="text" id="hexInput" value="#FF9F0A" oninput="fromHex(this.value)">
+    </div>
+
+    <div class="input-group">
+        <label>Shortcuts 32-bit Integer</label>
+        <input type="number" id="intInput" value="4288613119" oninput="fromInt(this.value)">
+    </div>
+
+    <div class="btn-row">
+        <button class="btn-copy" onclick="copyToClipboard()">Copy Integer</button>
+        <button class="btn-hex" onclick="copyHex()">Copy HEX</button>
+        <button class="btn-save" onclick="saveColor()">Save Color</button>
+    </div>
+    <div id="status" class="status"></div>
+
+    <!-- Saved Colors -->
+    <div class="section-header">
+        <h3>Saved Colors</h3>
+        <button class="clear-btn" onclick="clearAll()">Clear All</button>
+    </div>
+    <div class="color-grid" id="colorGrid"></div>
+    <div class="empty-state" id="emptyState">No saved colors yet.</div>
+</div>
+
+<script>
+    const picker   = document.getElementById('picker');
+    const hexInput = document.getElementById('hexInput');
+    const intInput = document.getElementById('intInput');
+    const preview  = document.getElementById('preview');
+    const status   = document.getElementById('status');
+    const grid     = document.getElementById('colorGrid');
+    const empty    = document.getElementById('emptyState');
+
+    // ── Converters ──────────────────────────────────────────────
+    function fromPicker(hex) {
+        hexInput.value = hex.toUpperCase();
+        updateInt(hex);
+        preview.style.backgroundColor = hex;
+    }
+
+    function fromHex(hex) {
+        if (/^#[0-9A-F]{6}$/i.test(hex)) {
+            picker.value = hex;
+            preview.style.backgroundColor = hex;
+            updateInt(hex);
+        }
+    }
+
+    function updateInt(hex) {
+        // Shortcuts color format: RRGGBBAA as a plain unsigned 32-bit integer.
+        // Alpha FF (fully opaque) is appended at the end — matching the reference
+        // Shortcut Color picker implementation (jscolor hexa format → parseInt).
+        let rrggbbaa = hex.replace('#', '') + 'FF';
+        intInput.value = parseInt(rrggbbaa, 16);
+    }
+
+    function fromInt(val) {
+        if (val === '' || val === null) return;
+        // Treat as unsigned 32-bit, convert to RRGGBBAA hex, extract RRGGBB
+        let num = (Number(val) >>> 0);
+        let hex8 = ('0000000' + num.toString(16)).slice(-8);
+        let colorPart = '#' + hex8.substring(0, 6).toUpperCase();
+        preview.style.backgroundColor = colorPart;
+        picker.value = colorPart;
+        hexInput.value = colorPart;
+    }
+
+    // ── Clipboard ────────────────────────────────────────────────
+    async function copyToClipboard() {
+        try {
+            await navigator.clipboard.writeText(intInput.value);
+            showStatus("Copied for Shortcuts!", "var(--green)");
+        } catch {
+            showStatus("Error copying.", "var(--red)");
+        }
+    }
+
+    async function copyHex() {
+        try {
+            await navigator.clipboard.writeText(hexInput.value);
+            showStatus("HEX copied!", "var(--green)");
+        } catch {
+            showStatus("Error copying.", "var(--red)");
+        }
+    }
+
+    function showStatus(msg, color) {
+        status.innerText = msg;
+        status.style.color = color || "var(--subtle)";
+        clearTimeout(showStatus._t);
+        showStatus._t = setTimeout(() => { status.innerText = ""; }, 2000);
+    }
+
+    // ── Saved Colors (localStorage) ──────────────────────────────
+    function loadColors() {
+        try { return JSON.parse(localStorage.getItem('shortcut_colors') || '[]'); }
+        catch { return []; }
+    }
+
+    function saveColors(arr) {
+        localStorage.setItem('shortcut_colors', JSON.stringify(arr));
+    }
+
+    function saveColor() {
+        const hex = hexInput.value.toUpperCase();
+        if (!/^#[0-9A-F]{6}$/i.test(hex)) {
+            showStatus("Invalid hex color.", "var(--red)");
+            return;
+        }
+        const colors = loadColors();
+        // Default label: "Color N"
+        const label = "Color " + (colors.length + 1);
+        colors.push({ hex, label, int: intInput.value });
+        saveColors(colors);
+        renderGrid();
+        showStatus("Color saved!", "var(--green)");
+    }
+
+    function deleteColor(index) {
+        const colors = loadColors();
+        colors.splice(index, 1);
+        saveColors(colors);
+        renderGrid();
+    }
+
+    function clearAll() {
+        if (loadColors().length === 0) return;
+        localStorage.removeItem('shortcut_colors');
+        renderGrid();
+    }
+
+    function loadSwatch(index) {
+        const colors = loadColors();
+        const c = colors[index];
+        if (!c) return;
+        fromHex(c.hex);
+        picker.value = c.hex;
+        hexInput.value = c.hex;
+        intInput.value = c.int;
+        preview.style.backgroundColor = c.hex;
+        showStatus(`Loaded "${c.label}"`, "var(--accent)");
+    }
+
+    function updateLabel(index, newLabel) {
+        const colors = loadColors();
+        if (colors[index]) {
+            colors[index].label = newLabel || ("Color " + (index + 1));
+            saveColors(colors);
+        }
+    }
+
+    function renderGrid() {
+        const colors = loadColors();
+        grid.innerHTML = '';
+        empty.style.display = colors.length === 0 ? 'block' : 'none';
+
+        colors.forEach((c, i) => {
+            const swatch = document.createElement('div');
+            swatch.className = 'color-swatch';
+
+            const colorDiv = document.createElement('div');
+            colorDiv.className = 'swatch-color';
+            colorDiv.style.backgroundColor = c.hex;
+            colorDiv.onclick = () => loadSwatch(i);
+
+            const info = document.createElement('div');
+            info.className = 'swatch-info';
+
+            const labelInput = document.createElement('input');
+            labelInput.className = 'swatch-label';
+            labelInput.value = c.label;
+            labelInput.maxLength = 18;
+            labelInput.title = 'Click to rename';
+            labelInput.addEventListener('blur', () => updateLabel(i, labelInput.value));
+            labelInput.addEventListener('keydown', e => { if (e.key === 'Enter') labelInput.blur(); });
+            // Prevent click on label from also triggering load
+            labelInput.addEventListener('click', e => e.stopPropagation());
+
+            const hexSpan = document.createElement('div');
+            hexSpan.className = 'swatch-hex';
+            hexSpan.textContent = c.hex;
+
+            const delBtn = document.createElement('button');
+            delBtn.className = 'swatch-delete';
+            delBtn.innerHTML = '✕';
+            delBtn.title = 'Remove';
+            delBtn.onclick = e => { e.stopPropagation(); deleteColor(i); };
+
+            info.appendChild(labelInput);
+            info.appendChild(hexSpan);
+            swatch.appendChild(colorDiv);
+            swatch.appendChild(info);
+            swatch.appendChild(delBtn);
+            grid.appendChild(swatch);
+        });
+    }
+
+    // Init
+    renderGrid();
+</script>
+
+</body>
+</html>

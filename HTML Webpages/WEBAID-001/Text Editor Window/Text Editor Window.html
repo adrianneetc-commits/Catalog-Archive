@@ -1,0 +1,287 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Full Page Editor</title>
+<style>
+  :root {
+    --ink: #1c1c1e;
+    --paper: #fbfaf8;
+    --line: #e2e0da;
+    --accent: #2f6f5e;
+    --accent-hover: #26594b;
+    --muted: #8a8578;
+    --toast-bg: #1c1c1e;
+  }
+
+  * { box-sizing: border-box; }
+
+  html, body {
+    height: 100%;
+    margin: 0;
+  }
+
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    background: var(--paper);
+    color: var(--ink);
+    display: flex;
+    flex-direction: column;
+  }
+
+  /* ---- Top banner ---- */
+  header {
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 10px 16px;
+    background: var(--paper);
+    border-bottom: 1px solid var(--line);
+  }
+
+  .brand {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-weight: 600;
+    font-size: 14px;
+    letter-spacing: 0.01em;
+    color: var(--ink);
+    white-space: nowrap;
+  }
+
+  .brand .dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--accent);
+    flex-shrink: 0;
+  }
+
+  .toolbar {
+    display: flex;
+    align-items: center;
+    gap: 2px;
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    scrollbar-width: none;
+    flex: 1;
+    justify-content: center;
+  }
+  .toolbar::-webkit-scrollbar { display: none; }
+
+  .toolbar button {
+    border: none;
+    background: transparent;
+    color: var(--ink);
+    font-size: 14px;
+    padding: 7px 10px;
+    border-radius: 6px;
+    cursor: pointer;
+    line-height: 1;
+    white-space: nowrap;
+    transition: background 0.12s ease;
+  }
+  .toolbar button:hover { background: #efece4; }
+  .toolbar button.active { background: #e4e0d4; }
+  .toolbar .sep {
+    width: 1px;
+    height: 18px;
+    background: var(--line);
+    margin: 0 6px;
+    flex-shrink: 0;
+  }
+
+  #copyBtn {
+    border: none;
+    background: var(--accent);
+    color: #fff;
+    font-size: 13px;
+    font-weight: 600;
+    padding: 9px 16px;
+    border-radius: 7px;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: background 0.15s ease, transform 0.1s ease;
+  }
+  #copyBtn:hover { background: var(--accent-hover); }
+  #copyBtn:active { transform: scale(0.97); }
+  #copyBtn.copied { background: var(--accent-hover); }
+
+  /* ---- Editor ---- */
+  main {
+    flex: 1;
+    overflow-y: auto;
+    display: flex;
+    justify-content: center;
+  }
+
+  #editor {
+    width: 100%;
+    max-width: 780px;
+    min-height: 100%;
+    padding: 48px 32px 120px;
+    outline: none;
+    font-size: 17px;
+    line-height: 1.7;
+  }
+
+  #editor:empty:before {
+    content: attr(data-placeholder);
+    color: var(--muted);
+  }
+
+  #editor h1 { font-size: 1.7em; margin: 0.6em 0 0.3em; }
+  #editor h2 { font-size: 1.35em; margin: 0.6em 0 0.3em; }
+  #editor blockquote {
+    border-left: 3px solid var(--accent);
+    margin: 0.8em 0;
+    padding: 0.2em 0 0.2em 14px;
+    color: #4a473e;
+  }
+  #editor ul, #editor ol { padding-left: 1.4em; }
+  #editor a { color: var(--accent); }
+
+  /* ---- Toast ---- */
+  #toast {
+    position: fixed;
+    bottom: 24px;
+    left: 50%;
+    transform: translateX(-50%) translateY(20px);
+    background: var(--toast-bg);
+    color: #fff;
+    padding: 10px 18px;
+    border-radius: 8px;
+    font-size: 13px;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.2s ease, transform 0.2s ease;
+    z-index: 20;
+  }
+  #toast.show {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+  }
+
+  @media (max-width: 560px) {
+    .brand span.label { display: none; }
+    #editor { padding: 28px 18px 100px; font-size: 16px; }
+    .toolbar button { padding: 7px 8px; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="brand"><span class="dot"></span><span class="label">Editor</span></div>
+  <div class="toolbar" id="toolbar">
+    <button data-cmd="bold" title="Bold"><b>B</b></button>
+    <button data-cmd="italic" title="Italic"><i>I</i></button>
+    <button data-cmd="underline" title="Underline"><u>U</u></button>
+    <span class="sep"></span>
+    <button data-cmd="formatBlock" data-value="H1" title="Heading 1">H1</button>
+    <button data-cmd="formatBlock" data-value="H2" title="Heading 2">H2</button>
+    <button data-cmd="formatBlock" data-value="BLOCKQUOTE" title="Quote">&ldquo;&rdquo;</button>
+    <span class="sep"></span>
+    <button data-cmd="insertUnorderedList" title="Bullet list">&bull; List</button>
+    <button data-cmd="insertOrderedList" title="Numbered list">1. List</button>
+    <span class="sep"></span>
+    <button data-cmd="removeFormat" title="Clear formatting">Clear</button>
+  </div>
+  <button id="copyBtn">Copy</button>
+</header>
+
+<main>
+  <div id="editor" contenteditable="true" data-placeholder="Start typing, or paste text here..."></div>
+</main>
+
+<div id="toast">Copied to clipboard</div>
+
+<script>
+  const editor = document.getElementById('editor');
+  const toolbar = document.getElementById('toolbar');
+  const copyBtn = document.getElementById('copyBtn');
+  const toast = document.getElementById('toast');
+
+  editor.focus();
+
+  toolbar.addEventListener('click', (e) => {
+    const btn = e.target.closest('button');
+    if (!btn) return;
+    const cmd = btn.dataset.cmd;
+    const value = btn.dataset.value || null;
+    document.execCommand(cmd, false, value);
+    editor.focus();
+    updateToolbarState();
+  });
+
+  function updateToolbarState() {
+    toolbar.querySelectorAll('button[data-cmd]').forEach(btn => {
+      const cmd = btn.dataset.cmd;
+      if (['bold', 'italic', 'underline', 'insertUnorderedList', 'insertOrderedList'].includes(cmd)) {
+        try {
+          btn.classList.toggle('active', document.queryCommandState(cmd));
+        } catch (_) {}
+      }
+    });
+  }
+
+  editor.addEventListener('keyup', updateToolbarState);
+  editor.addEventListener('mouseup', updateToolbarState);
+
+  function showToast(msg) {
+    toast.textContent = msg;
+    toast.classList.add('show');
+    setTimeout(() => toast.classList.remove('show'), 1600);
+  }
+
+  copyBtn.addEventListener('click', async () => {
+    const htmlContent = editor.innerHTML;
+    const textContent = editor.innerText;
+
+    try {
+      if (window.ClipboardItem) {
+        const item = new ClipboardItem({
+          'text/html': new Blob([htmlContent], { type: 'text/html' }),
+          'text/plain': new Blob([textContent], { type: 'text/plain' })
+        });
+        await navigator.clipboard.write([item]);
+      } else {
+        await navigator.clipboard.writeText(textContent);
+      }
+      copyBtn.textContent = 'Copied ✓';
+      copyBtn.classList.add('copied');
+      showToast('Formatted text copied to clipboard');
+    } catch (err) {
+      // Fallback for restrictive environments
+      try {
+        await navigator.clipboard.writeText(textContent);
+        copyBtn.textContent = 'Copied ✓';
+        copyBtn.classList.add('copied');
+        showToast('Copied as plain text');
+      } catch (err2) {
+        showToast('Copy failed — select text manually');
+      }
+    }
+
+    setTimeout(() => {
+      copyBtn.textContent = 'Copy';
+      copyBtn.classList.remove('copied');
+    }, 1600);
+  });
+
+  // Paste as plain-ish text but keep basic structure by default browser behavior
+  editor.addEventListener('paste', (e) => {
+    e.preventDefault();
+    const text = (e.clipboardData || window.clipboardData).getData('text/plain');
+    document.execCommand('insertText', false, text);
+  });
+</script>
+
+</body>
+</html>

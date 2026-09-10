@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Text Editor & Formatter</title>
+<!-- ── WEBTOOL-AID-QWBZ0  ─────────────────────────────────────────── -->
+  <style>
+    :root {
+      --bg-color: #0f172a;
+      --panel-bg: #1e293b;
+      --border-color: #334155;
+      --text-main: #f8fafc;
+      --text-muted: #94a3b8;
+      --primary: #3b82f6;
+      --primary-hover: #2563eb;
+      --accent-green: #10b981;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      background-color: var(--bg-color);
+      color: var(--text-main);
+      display: flex;
+      flex-direction: column;
+      height: 100vh;
+      overflow: hidden;
+    }
+
+    /* Top Banner / Toolbar */
+    header {
+      background-color: var(--panel-bg);
+      border-bottom: 1px solid var(--border-color);
+      padding: 12px 24px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 12px;
+      z-index: 10;
+    }
+
+    .title-area {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .title-area h1 {
+      font-size: 1.1rem;
+      font-weight: 600;
+      letter-spacing: -0.025em;
+    }
+
+    .controls-group {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .btn-tool {
+      background-color: #334155;
+      color: var(--text-main);
+      border: 1px solid var(--border-color);
+      padding: 6px 12px;
+      border-radius: 6px;
+      font-size: 0.85rem;
+      cursor: pointer;
+      transition: background 0.15s ease, transform 0.05s ease;
+    }
+
+    .btn-tool:hover {
+      background-color: #475569;
+    }
+
+    .btn-tool:active {
+      transform: scale(0.97);
+    }
+
+    /* Primary Copy Button */
+    .btn-copy {
+      background-color: var(--primary);
+      color: #fff;
+      border: none;
+      padding: 8px 18px;
+      border-radius: 6px;
+      font-weight: 600;
+      font-size: 0.9rem;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      transition: background-color 0.2s ease, transform 0.05s ease;
+    }
+
+    .btn-copy:hover {
+      background-color: var(--primary-hover);
+    }
+
+    .btn-copy.copied {
+      background-color: var(--accent-green);
+    }
+
+    /* Full Page Editor Area */
+    main {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      padding: 24px;
+      overflow: hidden;
+    }
+
+    textarea {
+      width: 100%;
+      height: 100%;
+      background-color: #0b0f19;
+      color: var(--text-main);
+      border: 1px solid var(--border-color);
+      border-radius: 8px;
+      padding: 20px;
+      font-size: 1rem;
+      line-height: 1.6;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+      resize: none;
+      outline: none;
+      transition: border-color 0.15s ease;
+    }
+
+    textarea:focus {
+      border-color: var(--primary);
+    }
+
+    /* Footer Stats */
+    footer {
+      display: flex;
+      justify-content: flex-end;
+      gap: 16px;
+      padding: 8px 24px 12px;
+      font-size: 0.8rem;
+      color: var(--text-muted);
+      background-color: var(--bg-color);
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <div class="title-area">
+      <h1>Full-Page Editor</h1>
+    </div>
+
+    <div class="controls-group">
+      <button class="btn-tool" onclick="transformText('uppercase')">UPPERCASE</button>
+      <button class="btn-tool" onclick="transformText('lowercase')">lowercase</button>
+      <button class="btn-tool" onclick="transformText('titlecase')">Title Case</button>
+      <button class="btn-tool" onclick="transformText('trim')">Trim Whitespace</button>
+      <button class="btn-tool" onclick="transformText('clean-lines')">Remove Empty Lines</button>
+    </div>
+
+    <button class="btn-copy" id="copyBtn" onclick="copyToClipboard()">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+        <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+      </svg>
+      <span id="copyText">Copy Text</span>
+    </button>
+  </header>
+
+  <main>
+    <textarea id="editor" placeholder="Type, paste, or format your text here..." oninput="updateStats()" autofocus></textarea>
+  </main>
+
+  <footer>
+    <span id="wordCount">0 words</span>
+    <span id="charCount">0 characters</span>
+  </footer>
+
+  <script>
+    const editor = document.getElementById('editor');
+    const copyBtn = document.getElementById('copyBtn');
+    const copyText = document.getElementById('copyText');
+    const wordCount = document.getElementById('wordCount');
+    const charCount = document.getElementById('charCount');
+
+    // Update Word and Character counters
+    function updateStats() {
+      const text = editor.value;
+      const words = text.trim() ? text.trim().split(/\s+/).length : 0;
+      wordCount.textContent = `${words.toLocaleString()} word${words === 1 ? '' : 's'}`;
+      charCount.textContent = `${text.length.toLocaleString()} character${text.length === 1 ? '' : 's'}`;
+    }
+
+    // Text Transformations
+    function transformText(type) {
+      const val = editor.value;
+      switch (type) {
+        case 'uppercase':
+          editor.value = val.toUpperCase();
+          break;
+        case 'lowercase':
+          editor.value = val.toLowerCase();
+          break;
+        case 'titlecase':
+          editor.value = val.replace(/\w\S*/g, (txt) => txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase());
+          break;
+        case 'trim':
+          editor.value = val.split('\n').map(line => line.trim()).join('\n').trim();
+          break;
+        case 'clean-lines':
+          editor.value = val.split('\n').filter(line => line.trim() !== '').join('\n');
+          break;
+      }
+      updateStats();
+    }
+
+    // Copy to Clipboard
+    async function copyToClipboard() {
+      if (!editor.value) return;
+
+      try {
+        await navigator.clipboard.writeText(editor.value);
+        copyBtn.classList.add('copied');
+        copyText.textContent = 'Copied!';
+        
+        setTimeout(() => {
+          copyBtn.classList.remove('copied');
+          copyText.textContent = 'Copy Text';
+        }, 2000);
+      } catch (err) {
+        // Fallback for older browsers / iframe restrictions
+        editor.select();
+        document.execCommand('copy');
+        copyText.textContent = 'Copied!';
+        setTimeout(() => {
+          copyText.textContent = 'Copy Text';
+        }, 2000);
+      }
+    }
+  </script>
+</body>
+</html>

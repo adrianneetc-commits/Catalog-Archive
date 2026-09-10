@@ -1,0 +1,996 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>cmdvault</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=Inter:wght@400;500;600&display=swap');
+
+  :root{
+    --bg: #0b0d0a;
+    --bg-raised: #14170f;
+    --bg-inset: #080906;
+    --line: #2a2e1f;
+    --amber: #ffb000;
+    --amber-dim: #8a6200;
+    --amber-faint: #4a3a10;
+    --text: #e8dcc0;
+    --text-dim: #8a8570;
+    --danger: #ff5f4d;
+    --success: #7dd07d;
+  }
+
+  * { box-sizing: border-box; }
+
+  html, body {
+    margin: 0; padding: 0;
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Inter', sans-serif;
+    height: 100%;
+  }
+
+  body {
+    background-image:
+      repeating-linear-gradient(0deg, rgba(255,176,0,0.015) 0px, rgba(255,176,0,0.015) 1px, transparent 1px, transparent 3px);
+  }
+
+  ::selection { background: var(--amber); color: #000; }
+
+  /* Scrollbar */
+  ::-webkit-scrollbar { width: 8px; height: 8px; }
+  ::-webkit-scrollbar-track { background: var(--bg-inset); }
+  ::-webkit-scrollbar-thumb { background: var(--amber-faint); }
+  ::-webkit-scrollbar-thumb:hover { background: var(--amber-dim); }
+
+  .shell {
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+  }
+
+  /* Topbar */
+  .topbar {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 20px;
+    border-bottom: 1px solid var(--line);
+    background: var(--bg-raised);
+    flex-wrap: wrap;
+  }
+
+  .brand {
+    font-family: 'JetBrains Mono', monospace;
+    font-weight: 700;
+    font-size: 15px;
+    color: var(--amber);
+    letter-spacing: 0.5px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    white-space: nowrap;
+    user-select: none;
+  }
+  .brand .cursor {
+    display: inline-block;
+    width: 8px; height: 16px;
+    background: var(--amber);
+    animation: blink 1.1s steps(1) infinite;
+  }
+  @keyframes blink { 50% { opacity: 0; } }
+
+  .search-wrap {
+    flex: 1;
+    min-width: 180px;
+    position: relative;
+  }
+  .search-wrap:before {
+    content: '/';
+    position: absolute;
+    left: 12px; top: 50%; transform: translateY(-50%);
+    color: var(--text-dim);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 13px;
+  }
+  #search {
+    width: 100%;
+    background: var(--bg-inset);
+    border: 1px solid var(--line);
+    color: var(--text);
+    padding: 8px 12px 8px 28px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 13px;
+    outline: none;
+  }
+  #search:focus { border-color: var(--amber-dim); }
+  #search::placeholder { color: var(--text-dim); }
+
+  .btn {
+    font-family: 'JetBrains Mono', monospace;
+    font-weight: 500;
+    font-size: 12.5px;
+    background: transparent;
+    border: 1px solid var(--line);
+    color: var(--text);
+    padding: 8px 14px;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: border-color .15s, color .15s, background .15s;
+  }
+  .btn:hover { border-color: var(--amber-dim); color: var(--amber); }
+  .btn:focus-visible { outline: 2px solid var(--amber); outline-offset: 2px; }
+  .btn-solid {
+    background: var(--amber);
+    border-color: var(--amber);
+    color: #1a1300;
+    font-weight: 600;
+  }
+  .btn-solid:hover { background: #ffc233; color: #1a1300; border-color: #ffc233; }
+
+  input[type=file] { display: none; }
+
+  /* Layout */
+  .main {
+    flex: 1;
+    display: flex;
+    min-height: 0;
+  }
+
+  .sidebar {
+    width: 220px;
+    flex-shrink: 0;
+    border-right: 1px solid var(--line);
+    background: var(--bg-raised);
+    padding: 16px 0;
+    overflow-y: auto;
+  }
+  .sidebar-label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    color: var(--text-dim);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    padding: 0 16px 8px;
+  }
+  .cat-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 8px 16px;
+    cursor: pointer;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12.5px;
+    color: var(--text-dim);
+    border-left: 2px solid transparent;
+  }
+  .cat-item:hover { color: var(--text); background: rgba(255,176,0,0.04); }
+  .cat-item.active {
+    color: var(--amber);
+    border-left-color: var(--amber);
+    background: rgba(255,176,0,0.06);
+  }
+  .cat-count {
+    font-size: 11px;
+    color: var(--text-dim);
+    background: var(--bg-inset);
+    padding: 1px 6px;
+    border: 1px solid var(--line);
+  }
+  .cat-item.active .cat-count { color: var(--amber); border-color: var(--amber-faint); }
+
+  .content {
+    flex: 1;
+    overflow-y: auto;
+    padding: 0;
+  }
+
+  .empty-state {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+    color: var(--text-dim);
+    font-family: 'JetBrains Mono', monospace;
+    padding: 60px 20px;
+    text-align: center;
+  }
+  .empty-state .glyph { font-size: 32px; color: var(--amber-faint); margin-bottom: 12px; }
+
+  .cmd-row {
+    display: grid;
+    grid-template-columns: 44px 1fr auto;
+    gap: 0;
+    border-bottom: 1px solid var(--line);
+    align-items: stretch;
+  }
+  .cmd-row:hover { background: rgba(255,176,0,0.02); }
+
+  .lineno {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    color: var(--amber-dim);
+    text-align: right;
+    padding: 14px 10px 14px 0;
+    user-select: none;
+    border-right: 1px solid var(--line);
+  }
+
+  .cmd-body { padding: 12px 16px; min-width: 0; }
+  .cmd-top { display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap; margin-bottom: 4px; }
+  .cmd-name { font-weight: 600; font-size: 13.5px; color: var(--text); }
+  .cmd-tag {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10.5px;
+    color: var(--amber);
+    background: rgba(255,176,0,0.08);
+    border: 1px solid var(--amber-faint);
+    padding: 1px 7px;
+    text-transform: lowercase;
+  }
+  .cmd-notes { font-size: 12.5px; color: var(--text-dim); margin-top: 6px; }
+
+  .cmd-line-row {
+    display: flex;
+    align-items: stretch;
+    gap: 6px;
+    margin-top: 6px;
+  }
+  .cmd-line {
+    flex: 1;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12.5px;
+    color: var(--text);
+    background: var(--bg-inset);
+    border: 1px solid var(--line);
+    padding: 8px 10px;
+    white-space: pre-wrap;
+    word-break: break-all;
+    cursor: default;
+  }
+  .cmd-line:before { content: '$ '; color: var(--amber); }
+
+  .line-btn-group { display: flex; gap: 4px; flex-shrink: 0; }
+  .line-btn {
+    background: transparent;
+    border: 1px solid var(--line);
+    color: var(--text-dim);
+    width: 32px;
+    font-size: 12px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .line-btn:hover { border-color: var(--amber-dim); color: var(--amber); }
+  .line-btn.run-btn:hover { border-color: var(--success); color: var(--success); }
+
+  .cmd-actions {
+    display: flex;
+    align-items: flex-start;
+    gap: 6px;
+    padding: 12px 16px 12px 8px;
+  }
+  .icon-btn {
+    background: transparent;
+    border: 1px solid var(--line);
+    color: var(--text-dim);
+    width: 30px; height: 30px;
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer;
+    font-size: 13px;
+    flex-shrink: 0;
+  }
+  .icon-btn:hover { border-color: var(--amber-dim); color: var(--amber); }
+  .icon-btn.danger:hover { border-color: var(--danger); color: var(--danger); }
+  .icon-btn.copied { border-color: var(--amber); color: var(--amber); background: rgba(255,176,0,0.1); }
+  .icon-btn.running { border-color: var(--amber); color: var(--amber); animation: pulse 0.8s infinite; }
+  .icon-btn.ok { border-color: var(--success); color: var(--success); }
+  .icon-btn.err { border-color: var(--danger); color: var(--danger); }
+  @keyframes pulse { 50% { opacity: 0.4; } }
+
+  /* Output console block */
+  .output-block {
+    margin-top: 4px;
+    background: #050603;
+    border: 1px solid var(--line);
+    border-left: 2px solid var(--amber-dim);
+    padding: 8px 10px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    white-space: pre-wrap;
+    word-break: break-word;
+    max-height: 220px;
+    overflow-y: auto;
+  }
+  .output-block.err { border-left-color: var(--danger); }
+  .output-block .out-head {
+    display: flex; justify-content: space-between; align-items: center;
+    color: var(--text-dim); margin-bottom: 4px; font-size: 11px;
+  }
+  .output-block .out-close { cursor: pointer; color: var(--text-dim); }
+  .output-block .out-close:hover { color: var(--amber); }
+  .output-stdout { color: var(--text); }
+  .output-stderr { color: #ff8a7a; }
+
+  /* Runner status indicator */
+  .runner-status {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11.5px;
+    color: var(--text-dim);
+    cursor: pointer;
+    padding: 8px 10px;
+    border: 1px solid var(--line);
+    white-space: nowrap;
+    background: transparent;
+  }
+  .runner-status:hover { border-color: var(--amber-dim); }
+  .runner-dot {
+    width: 7px; height: 7px;
+    border-radius: 50%;
+    background: var(--text-dim);
+    flex-shrink: 0;
+  }
+  .runner-status.connected .runner-dot { background: var(--success); box-shadow: 0 0 5px var(--success); }
+  .runner-status.connected { color: var(--success); border-color: #2e5a2e; }
+
+  /* Modals */
+  .modal-overlay {
+    position: fixed; inset: 0;
+    background: rgba(0,0,0,0.75);
+    display: none;
+    align-items: center; justify-content: center;
+    z-index: 50;
+    padding: 20px;
+  }
+  .modal-overlay.open { display: flex; }
+  .modal {
+    background: var(--bg-raised);
+    border: 1px solid var(--amber-faint);
+    width: 100%; max-width: 480px;
+    max-height: 90vh;
+    overflow-y: auto;
+  }
+  .modal-head {
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 16px 18px;
+    border-bottom: 1px solid var(--line);
+  }
+  .modal-head h2 {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 14px;
+    color: var(--amber);
+    margin: 0;
+    font-weight: 600;
+  }
+  .modal-close {
+    background: none; border: none; color: var(--text-dim);
+    cursor: pointer; font-size: 18px; line-height: 1;
+  }
+  .modal-close:hover { color: var(--amber); }
+  .modal-body { padding: 18px; display: flex; flex-direction: column; gap: 14px; }
+  .field label {
+    display: block;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    color: var(--text-dim);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 6px;
+  }
+  .field input, .field textarea {
+    width: 100%;
+    background: var(--bg-inset);
+    border: 1px solid var(--line);
+    color: var(--text);
+    padding: 9px 10px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 13px;
+    outline: none;
+    resize: vertical;
+  }
+  .field textarea { min-height: 75px; line-height: 1.5; }
+  .field input:focus, .field textarea:focus { border-color: var(--amber-dim); }
+  .field-hint { font-size: 11.5px; color: var(--text-dim); margin-top: 5px; line-height: 1.4; }
+  .modal-foot {
+    display: flex; justify-content: flex-end; gap: 8px;
+    padding: 14px 18px; border-top: 1px solid var(--line);
+  }
+
+  .toast {
+    position: fixed;
+    bottom: 20px; left: 50%;
+    transform: translateX(-50%) translateY(20px);
+    background: var(--amber);
+    color: #1a1300;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 13px;
+    font-weight: 600;
+    padding: 9px 18px;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity .2s, transform .2s;
+    z-index: 100;
+  }
+  .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+  @media (max-width: 680px) {
+    .sidebar { display: none; }
+    .cmd-row { grid-template-columns: 32px 1fr auto; }
+    .cmd-actions { flex-direction: column; }
+  }
+</style>
+</head>
+<body>
+<div class="shell">
+  <div class="topbar">
+    <div class="brand"><span class="cursor"></span>cmdvault</div>
+    <div class="search-wrap">
+      <input id="search" type="text" placeholder="filter commands...">
+    </div>
+    <button class="btn" id="uploadBtn">upload</button>
+    <input type="file" id="fileInput" accept=".txt,.sh,.json">
+    <button class="btn" id="exportBtn">export</button>
+    <button class="runner-status" id="runnerStatus" title="configure local runner connection">
+      <span class="runner-dot"></span><span id="runnerStatusText">runner: off</span>
+    </button>
+    <button class="btn btn-solid" id="addBtn">+ add command</button>
+  </div>
+
+  <div class="main">
+    <div class="sidebar">
+      <div class="sidebar-label">categories</div>
+      <div id="catList"></div>
+    </div>
+    <div class="content" id="content"></div>
+  </div>
+</div>
+
+<!-- Command Edit Modal -->
+<div class="modal-overlay" id="modalOverlay">
+  <div class="modal">
+    <div class="modal-head">
+      <h2 id="modalTitle">add command</h2>
+      <button class="modal-close" id="modalClose">&times;</button>
+    </div>
+    <div class="modal-body">
+      <div class="field">
+        <label>name</label>
+        <input id="fName" type="text" placeholder="e.g. kill all background tasks">
+      </div>
+      <div class="field">
+        <label>command (one per line = individual runnable items)</label>
+        <textarea id="fCommand" placeholder="find . -name '*.log' -delete"></textarea>
+        <div class="field-hint">multi-line commands receive individual execution buttons.</div>
+      </div>
+      <div class="field">
+        <label>category</label>
+        <input id="fCategory" type="text" placeholder="e.g. system, git, docker" list="catOptions">
+        <datalist id="catOptions"></datalist>
+      </div>
+      <div class="field">
+        <label>notes (optional)</label>
+        <textarea id="fNotes" placeholder="flags, explanations, dependencies..." style="min-height:55px;"></textarea>
+      </div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn" id="cancelBtn">cancel</button>
+      <button class="btn btn-solid" id="saveBtn">save</button>
+    </div>
+  </div>
+</div>
+
+<!-- Runner Config Modal -->
+<div class="modal-overlay" id="runnerOverlay">
+  <div class="modal">
+    <div class="modal-head">
+      <h2>runner connection</h2>
+      <button class="modal-close" id="runnerModalClose">&times;</button>
+    </div>
+    <div class="modal-body">
+      <div class="field-hint">
+        Run <code>python3 cmdvault-runner.py</code> in your local terminal. Paste the displayed token below to grant execution access.
+      </div>
+      <div class="field">
+        <label>runner url</label>
+        <input id="runnerUrl" type="text" placeholder="http://127.0.0.1:8765">
+      </div>
+      <div class="field">
+        <label>token</label>
+        <input id="runnerToken" type="text" placeholder="hex token printed on startup">
+      </div>
+      <div class="field-hint" id="runnerTestResult"></div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn" id="runnerDisconnectBtn">disconnect</button>
+      <button class="btn btn-solid" id="runnerConnectBtn">connect</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// Polyfill storage API to localStorage
+const storageProvider = {
+  async get(key) {
+    if (window.storage && typeof window.storage.get === 'function') {
+      return window.storage.get(key, false);
+    }
+    const val = localStorage.getItem(key);
+    return val !== null ? { value: val } : null;
+  },
+  async set(key, value) {
+    if (window.storage && typeof window.storage.set === 'function') {
+      return window.storage.set(key, value, false);
+    }
+    localStorage.setItem(key, value);
+    return true;
+  }
+};
+
+const STORAGE_KEY = 'commands';
+let commands = [];
+let activeCategory = 'all';
+let editingId = null;
+
+const contentEl = document.getElementById('content');
+const catListEl = document.getElementById('catList');
+const searchEl = document.getElementById('search');
+const toastEl = document.getElementById('toast');
+
+function uid(){ return 'c_' + Date.now() + '_' + Math.random().toString(36).slice(2,8); }
+
+function showToast(msg){
+  toastEl.textContent = msg;
+  toastEl.classList.add('show');
+  clearTimeout(showToast._t);
+  showToast._t = setTimeout(() => toastEl.classList.remove('show'), 1600);
+}
+
+async function loadCommands(){
+  try {
+    const res = await storageProvider.get(STORAGE_KEY);
+    commands = res ? JSON.parse(res.value) : [];
+  } catch(e){
+    commands = [];
+  }
+  render();
+}
+
+async function persist(){
+  try {
+    await storageProvider.set(STORAGE_KEY, JSON.stringify(commands));
+  } catch(e){
+    showToast('save failed — local storage error');
+  }
+}
+
+function getCategories(){
+  const cats = new Set(commands.map(c => c.category || 'uncategorized'));
+  return Array.from(cats).sort();
+}
+
+function renderCategories(){
+  const cats = getCategories();
+  const counts = {};
+  commands.forEach(c => {
+    const k = c.category || 'uncategorized';
+    counts[k] = (counts[k]||0) + 1;
+  });
+  let html = `<div class="cat-item ${activeCategory==='all'?'active':''}" data-cat="all">
+    <span>all</span><span class="cat-count">${commands.length}</span></div>`;
+  cats.forEach(cat => {
+    html += `<div class="cat-item ${activeCategory===cat?'active':''}" data-cat="${escapeAttr(cat)}">
+      <span>${escapeHtml(cat)}</span><span class="cat-count">${counts[cat]}</span></div>`;
+  });
+  catListEl.innerHTML = html;
+  catListEl.querySelectorAll('.cat-item').forEach(el => {
+    el.addEventListener('click', () => {
+      activeCategory = el.dataset.cat;
+      render();
+    });
+  });
+
+  const datalist = document.getElementById('catOptions');
+  datalist.innerHTML = cats.map(c => `<option value="${escapeAttr(c)}">`).join('');
+}
+
+function escapeHtml(str){
+  const d = document.createElement('div');
+  d.textContent = str || '';
+  return d.innerHTML;
+}
+function escapeAttr(str){
+  return (str||'').replace(/"/g,'&quot;');
+}
+
+function filteredCommands(){
+  const q = searchEl.value.trim().toLowerCase();
+  return commands.filter(c => {
+    if (activeCategory !== 'all' && (c.category || 'uncategorized') !== activeCategory) return false;
+    if (!q) return true;
+    return (c.name||'').toLowerCase().includes(q) ||
+           (c.command||'').toLowerCase().includes(q) ||
+           (c.notes||'').toLowerCase().includes(q) ||
+           (c.category||'').toLowerCase().includes(q);
+  });
+}
+
+function render(){
+  renderCategories();
+  const list = filteredCommands();
+  if (list.length === 0){
+    contentEl.innerHTML = `<div class="empty-state">
+      <div class="glyph">&gt;_</div>
+      <div>${commands.length === 0 ? 'no commands saved yet' : 'no matches found'}</div>
+    </div>`;
+    return;
+  }
+  let html = '';
+  list.forEach((c, i) => {
+    const lines = (c.command||'').split('\n').filter(l => l.trim().length);
+    html += `<div class="cmd-row" data-id="${c.id}">
+      <div class="lineno">${String(i+1).padStart(2,'0')}</div>
+      <div class="cmd-body">
+        <div class="cmd-top">
+          <span class="cmd-name">${escapeHtml(c.name || 'untitled')}</span>
+          <span class="cmd-tag">${escapeHtml(c.category || 'uncategorized')}</span>
+        </div>
+        ${lines.map(line => `<div class="cmd-line-row">
+            <div class="cmd-line">${escapeHtml(line)}</div>
+            <div class="line-btn-group">
+              <button class="line-btn run-btn" title="run this line" data-line="${escapeAttr(line)}">&#9658;</button>
+              <button class="line-btn copy-btn" title="copy this line" data-line="${escapeAttr(line)}">&#10697;</button>
+            </div>
+          </div>
+          <div class="output-slot"></div>`).join('')}
+        ${c.notes ? `<div class="cmd-notes">${escapeHtml(c.notes)}</div>` : ''}
+      </div>
+      <div class="cmd-actions">
+        <button class="icon-btn run-all-btn" title="run all lines" data-id="${c.id}">&#9654;&#9654;</button>
+        <button class="icon-btn edit-btn" title="edit" data-id="${c.id}">&#9998;</button>
+        <button class="icon-btn danger delete-btn" title="delete" data-id="${c.id}">&#10005;</button>
+      </div>
+    </div>`;
+  });
+  contentEl.innerHTML = html;
+  attachRowEvents();
+}
+
+function attachRowEvents(){
+  contentEl.querySelectorAll('.copy-btn').forEach(btn => {
+    btn.addEventListener('click', () => copyText(btn.dataset.line, btn));
+  });
+  contentEl.querySelectorAll('.run-btn').forEach(btn => {
+    btn.addEventListener('click', () => runOne(btn.dataset.line, btn));
+  });
+  contentEl.querySelectorAll('.run-all-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const c = commands.find(x => x.id === btn.dataset.id);
+      if (!c) return;
+      runOne(c.command, btn);
+    });
+  });
+  contentEl.querySelectorAll('.edit-btn').forEach(btn => {
+    btn.addEventListener('click', () => openEdit(btn.dataset.id));
+  });
+  contentEl.querySelectorAll('.delete-btn').forEach(btn => {
+    btn.addEventListener('click', () => deleteCommand(btn.dataset.id));
+  });
+}
+
+// Local Runner Integration
+let runnerConfig = { url: 'http://127.0.0.1:8765', token: '', connected: false };
+
+async function loadRunnerConfig(){
+  try {
+    const res = await storageProvider.get('runner-config');
+    if (res) runnerConfig = { ...runnerConfig, ...JSON.parse(res.value) };
+  } catch(e){}
+  if (runnerConfig.url && runnerConfig.token){
+    pingRunner();
+  } else {
+    updateRunnerStatus(false);
+  }
+}
+
+function updateRunnerStatus(connected){
+  runnerConfig.connected = connected;
+  const el = document.getElementById('runnerStatus');
+  const txt = document.getElementById('runnerStatusText');
+  el.classList.toggle('connected', connected);
+  txt.textContent = connected ? 'runner: connected' : 'runner: off';
+}
+
+async function pingRunner(){
+  try {
+    const target = runnerConfig.url.replace(/\/$/,'') + '/ping';
+    const res = await fetch(target, { method: 'GET' });
+    updateRunnerStatus(res.ok);
+    return res.ok;
+  } catch(e){
+    updateRunnerStatus(false);
+    return false;
+  }
+}
+
+async function runOne(commandText, el){
+  if (!commandText || !commandText.trim()) return;
+
+  if (!runnerConfig.connected){
+    copyText(commandText, el);
+    showToast('runner offline — command copied to clipboard');
+    return;
+  }
+
+  if (el) el.classList.add('running');
+  const outSlot = findOutputSlot(el);
+
+  try {
+    const res = await fetch(runnerConfig.url.replace(/\/$/,'') + '/run', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ command: commandText, token: runnerConfig.token })
+    });
+    const data = await res.json();
+    if (el) el.classList.remove('running');
+
+    if (!res.ok){
+      if (el) el.classList.add('err');
+      showOutput(outSlot, { stdout: '', stderr: data.error || 'unauthorized: check token', exit_code: -1 });
+      return;
+    }
+    if (el) el.classList.add(data.exit_code === 0 ? 'ok' : 'err');
+    setTimeout(() => el && el.classList.remove('ok','err'), 1200);
+    showOutput(outSlot, data);
+  } catch(e){
+    if (el){ el.classList.remove('running'); el.classList.add('err'); setTimeout(()=>el.classList.remove('err'),1200); }
+    updateRunnerStatus(false);
+    showOutput(outSlot, { stdout: '', stderr: 'connection refused — ensure cmdvault-runner.py is active', exit_code: -1 });
+  }
+}
+
+function findOutputSlot(el){
+  if (!el) return null;
+  const row = el.closest('.cmd-line-row') || el.closest('.cmd-actions');
+  if (!row) return null;
+  if (row.classList.contains('cmd-line-row')) return row.nextElementSibling;
+  const body = row.parentElement.querySelector('.cmd-body');
+  const slots = body ? body.querySelectorAll('.output-slot') : [];
+  return slots.length ? slots[slots.length - 1] : null;
+}
+
+function showOutput(slot, data){
+  if (!slot) return;
+  const isErr = data.exit_code !== 0;
+  slot.innerHTML = `<div class="output-block ${isErr ? 'err' : ''}">
+    <div class="out-head"><span>exit code: ${data.exit_code}</span><span class="out-close">&times;</span></div>
+    ${data.stdout ? `<div class="output-stdout">${escapeHtml(data.stdout)}</div>` : ''}
+    ${data.stderr ? `<div class="output-stderr">${escapeHtml(data.stderr)}</div>` : ''}
+    ${(!data.stdout && !data.stderr) ? `<div class="output-stdout" style="color:var(--text-dim)">(no output)</div>` : ''}
+  </div>`;
+  slot.querySelector('.out-close').addEventListener('click', () => { slot.innerHTML = ''; });
+}
+
+// Runner Modal Events
+const runnerOverlay = document.getElementById('runnerOverlay');
+document.getElementById('runnerStatus').addEventListener('click', () => {
+  document.getElementById('runnerUrl').value = runnerConfig.url || 'http://127.0.0.1:8765';
+  document.getElementById('runnerToken').value = runnerConfig.token || '';
+  document.getElementById('runnerTestResult').textContent = '';
+  runnerOverlay.classList.add('open');
+});
+document.getElementById('runnerModalClose').addEventListener('click', () => runnerOverlay.classList.remove('open'));
+runnerOverlay.addEventListener('click', (e) => { if (e.target === runnerOverlay) runnerOverlay.classList.remove('open'); });
+
+document.getElementById('runnerConnectBtn').addEventListener('click', async () => {
+  const url = document.getElementById('runnerUrl').value.trim() || 'http://127.0.0.1:8765';
+  const token = document.getElementById('runnerToken').value.trim();
+  runnerConfig.url = url;
+  runnerConfig.token = token;
+  const resultEl = document.getElementById('runnerTestResult');
+  resultEl.textContent = 'verifying connection...';
+  const ok = await pingRunner();
+  if (ok){
+    resultEl.textContent = 'connected successfully.';
+    try { await storageProvider.set('runner-config', JSON.stringify({ url, token })); } catch(e){}
+    showToast('runner linked');
+    setTimeout(() => runnerOverlay.classList.remove('open'), 500);
+  } else {
+    resultEl.textContent = 'failed to connect. Verify the script is running and listening on that port.';
+  }
+});
+
+document.getElementById('runnerDisconnectBtn').addEventListener('click', async () => {
+  runnerConfig = { url: runnerConfig.url, token: '', connected: false };
+  updateRunnerStatus(false);
+  try { await storageProvider.set('runner-config', JSON.stringify({ url: runnerConfig.url, token: '' })); } catch(e){}
+  runnerOverlay.classList.remove('open');
+  showToast('runner disconnected');
+});
+
+async function copyText(text, el){
+  try {
+    await navigator.clipboard.writeText(text);
+  } catch(e){
+    const ta = document.createElement('textarea');
+    ta.value = text;
+    document.body.appendChild(ta);
+    ta.select();
+    document.execCommand('copy');
+    document.body.removeChild(ta);
+  }
+  showToast('copied to clipboard');
+  if (el){
+    el.classList.add('copied');
+    setTimeout(() => el.classList.remove('copied'), 900);
+  }
+}
+
+function deleteCommand(id){
+  if (!confirm('Delete this command entry?')) return;
+  commands = commands.filter(c => c.id !== id);
+  persist();
+  render();
+}
+
+// Modal Handlers
+const overlay = document.getElementById('modalOverlay');
+const modalTitle = document.getElementById('modalTitle');
+const fName = document.getElementById('fName');
+const fCommand = document.getElementById('fCommand');
+const fCategory = document.getElementById('fCategory');
+const fNotes = document.getElementById('fNotes');
+
+function openAdd(){
+  editingId = null;
+  modalTitle.textContent = 'add command';
+  fName.value = ''; fCommand.value = ''; fCategory.value = ''; fNotes.value = '';
+  overlay.classList.add('open');
+  renderCategories();
+  setTimeout(() => fName.focus(), 50);
+}
+
+function openEdit(id){
+  const c = commands.find(x => x.id === id);
+  if (!c) return;
+  editingId = id;
+  modalTitle.textContent = 'edit command';
+  fName.value = c.name || '';
+  fCommand.value = c.command || '';
+  fCategory.value = c.category || '';
+  fNotes.value = c.notes || '';
+  overlay.classList.add('open');
+  renderCategories();
+  setTimeout(() => fName.focus(), 50);
+}
+
+function closeModal(){
+  overlay.classList.remove('open');
+}
+
+document.getElementById('addBtn').addEventListener('click', openAdd);
+document.getElementById('modalClose').addEventListener('click', closeModal);
+document.getElementById('cancelBtn').addEventListener('click', closeModal);
+overlay.addEventListener('click', (e) => { if (e.target === overlay) closeModal(); });
+
+document.getElementById('saveBtn').addEventListener('click', async () => {
+  const name = fName.value.trim();
+  const command = fCommand.value.trim();
+  if (!command){
+    showToast('command is required');
+    return;
+  }
+  if (editingId){
+    const c = commands.find(x => x.id === editingId);
+    c.name = name; c.command = command;
+    c.category = fCategory.value.trim() || 'uncategorized';
+    c.notes = fNotes.value.trim();
+  } else {
+    commands.unshift({
+      id: uid(),
+      name: name || 'untitled',
+      command,
+      category: fCategory.value.trim() || 'uncategorized',
+      notes: fNotes.value.trim(),
+      created: Date.now()
+    });
+  }
+  await persist();
+  closeModal();
+  render();
+  showToast('command saved');
+});
+
+searchEl.addEventListener('input', render);
+
+// Import & Export
+document.getElementById('uploadBtn').addEventListener('click', () => {
+  document.getElementById('fileInput').click();
+});
+
+document.getElementById('fileInput').addEventListener('change', async (e) => {
+  const file = e.target.files[0];
+  if (!file) return;
+  const text = await file.text();
+  let imported = 0;
+
+  if (file.name.endsWith('.json')){
+    try {
+      const data = JSON.parse(text);
+      const arr = Array.isArray(data) ? data : (data.commands || []);
+      arr.forEach(item => {
+        if (item && item.command){
+          commands.unshift({
+            id: uid(),
+            name: item.name || 'untitled',
+            command: item.command,
+            category: item.category || 'imported',
+            notes: item.notes || '',
+            created: Date.now()
+          });
+          imported++;
+        }
+      });
+    } catch(err){
+      showToast('invalid JSON file format');
+      e.target.value = '';
+      return;
+    }
+  } else {
+    const lines = text.split('\n').map(l => l.trim()).filter(l => l && !l.startsWith('#!'));
+    lines.forEach(line => {
+      commands.unshift({
+        id: uid(),
+        name: line.length > 40 ? line.slice(0,40) + '…' : line,
+        command: line,
+        category: 'imported',
+        notes: '',
+        created: Date.now()
+      });
+      imported++;
+    });
+  }
+
+  await persist();
+  render();
+  showToast(`imported ${imported} command${imported === 1 ? '' : 's'}`);
+  e.target.value = '';
+});
+
+document.getElementById('exportBtn').addEventListener('click', () => {
+  const blob = new Blob([JSON.stringify(commands, null, 2)], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = 'cmdvault-export.json';
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+  showToast('exported commands to JSON');
+});
+
+// Keyboard Shortcuts
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'Escape'){
+    if (overlay.classList.contains('open')) closeModal();
+    if (runnerOverlay.classList.contains('open')) runnerOverlay.classList.remove('open');
+  }
+  if (e.key === '/' && document.activeElement !== searchEl && !overlay.classList.contains('open') && !runnerOverlay.classList.contains('open')){
+    e.preventDefault();
+    searchEl.focus();
+  }
+});
+
+loadCommands();
+loadRunnerConfig();
+</script>
+</body>
+</html>

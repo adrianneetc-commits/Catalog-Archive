@@ -1,0 +1,501 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>HTML Document Indexer</title>
+  <style>
+    :root {
+      --bg-main: #0f172a;
+      --bg-sidebar: #1e293b;
+      --bg-card: #334155;
+      --accent: #38bdf8;
+      --accent-hover: #0284c7;
+      --text: #f8fafc;
+      --text-muted: #94a3b8;
+      --border: #475569;
+      --danger: #ef4444;
+      --success: #22c55e;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    }
+
+    body {
+      display: flex;
+      height: 100vh;
+      background-color: var(--bg-main);
+      color: var(--text);
+      overflow: hidden;
+    }
+
+    /* Sidebar */
+    aside {
+      width: 320px;
+      min-width: 280px;
+      background-color: var(--bg-sidebar);
+      border-right: 1px solid var(--border);
+      display: flex;
+      flex-direction: column;
+    }
+
+    .sidebar-header {
+      padding: 16px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .sidebar-header h1 {
+      font-size: 1.1rem;
+      font-weight: 700;
+      color: var(--accent);
+      margin-bottom: 12px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .search-input {
+      width: 100%;
+      padding: 8px 12px;
+      background: var(--bg-main);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      color: var(--text);
+      font-size: 0.85rem;
+      outline: none;
+    }
+    .search-input:focus { border-color: var(--accent); }
+
+    .file-list {
+      flex: 1;
+      overflow-y: auto;
+      padding: 8px;
+      list-style: none;
+    }
+
+    .file-item {
+      padding: 10px 12px;
+      border-radius: 6px;
+      cursor: pointer;
+      margin-bottom: 4px;
+      background: transparent;
+      transition: background 0.15s;
+    }
+    .file-item:hover { background: var(--bg-card); }
+    .file-item.active { background: var(--bg-card); border-left: 3px solid var(--accent); }
+
+    .file-item .title {
+      font-weight: 600;
+      font-size: 0.9rem;
+      margin-bottom: 4px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .file-item .meta {
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      display: flex;
+      justify-content: space-between;
+    }
+
+    .sidebar-footer {
+      padding: 12px 16px;
+      border-top: 1px solid var(--border);
+      display: flex;
+      gap: 8px;
+    }
+
+    /* Main Area */
+    main {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    .toolbar {
+      padding: 10px 20px;
+      background: var(--bg-sidebar);
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+    }
+
+    .doc-meta-inputs {
+      display: flex;
+      gap: 10px;
+      flex: 1;
+    }
+
+    .doc-title-input {
+      flex: 2;
+      padding: 6px 10px;
+      background: var(--bg-main);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      color: var(--text);
+      font-size: 0.9rem;
+      font-weight: 600;
+    }
+
+    .doc-tags-input {
+      flex: 1;
+      padding: 6px 10px;
+      background: var(--bg-main);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      color: var(--text);
+      font-size: 0.85rem;
+    }
+
+    .btn-group {
+      display: flex;
+      gap: 8px;
+    }
+
+    button {
+      padding: 6px 12px;
+      border-radius: 6px;
+      border: none;
+      font-size: 0.8rem;
+      font-weight: 600;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      transition: opacity 0.15s;
+    }
+    button:hover { opacity: 0.9; }
+
+    .btn-primary { background: var(--accent); color: #000; }
+    .btn-secondary { background: var(--bg-card); color: var(--text); border: 1px solid var(--border); }
+    .btn-danger { background: var(--danger); color: #fff; }
+    .btn-success { background: var(--success); color: #000; }
+
+    /* Content Area */
+    .workspace {
+      flex: 1;
+      display: flex;
+      overflow: hidden;
+    }
+
+    .editor-pane {
+      width: 45%;
+      border-right: 1px solid var(--border);
+      display: flex;
+      flex-direction: column;
+      background: #090d16;
+    }
+
+    .editor-header {
+      padding: 6px 12px;
+      background: var(--bg-sidebar);
+      font-size: 0.75rem;
+      font-weight: 600;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    textarea#codeEditor {
+      flex: 1;
+      width: 100%;
+      background: transparent;
+      color: #38bdf8;
+      font-family: "Fira Code", Monaco, Consolas, monospace;
+      font-size: 0.85rem;
+      line-height: 1.5;
+      padding: 14px;
+      border: none;
+      outline: none;
+      resize: none;
+      tab-size: 2;
+    }
+
+    .preview-pane {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      background: #fff;
+    }
+
+    .preview-header {
+      padding: 6px 12px;
+      background: var(--bg-sidebar);
+      color: var(--text-muted);
+      font-size: 0.75rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    iframe#previewFrame {
+      flex: 1;
+      width: 100%;
+      height: 100%;
+      border: none;
+      background: #ffffff;
+    }
+
+    .hidden { display: none !important; }
+  </style>
+</head>
+<body>
+
+  <!-- Sidebar -->
+  <aside>
+    <div class="sidebar-header">
+      <h1><span>&#128196;</span> HTML Indexer</h1>
+      <input type="text" id="searchInput" class="search-input" placeholder="Search by title or tags..." />
+    </div>
+
+    <ul class="file-list" id="fileList"></ul>
+
+    <div class="sidebar-footer">
+      <button class="btn-primary" id="newDocBtn" style="flex: 1;">+ New Document</button>
+      <button class="btn-secondary" id="exportAllBtn" title="Export all documents as JSON">&#128190;</button>
+    </div>
+  </aside>
+
+  <!-- Main View -->
+  <main>
+    <div class="toolbar">
+      <div class="doc-meta-inputs">
+        <input type="text" id="docTitle" class="doc-title-input" placeholder="Document Title..." />
+        <input type="text" id="docTags" class="doc-tags-input" placeholder="Tags (comma separated)..." />
+      </div>
+
+      <div class="btn-group">
+        <button class="btn-success" id="saveDocBtn">&#10003; Save</button>
+        <button class="btn-secondary" id="downloadHtmlBtn" title="Download as .html file">&#11015; HTML</button>
+        <button class="btn-danger" id="deleteDocBtn" title="Delete current document">&#128465;</button>
+      </div>
+    </div>
+
+    <div class="workspace">
+      <!-- HTML Code Editor -->
+      <section class="editor-pane">
+        <div class="editor-header">HTML Source</div>
+        <textarea id="codeEditor" spellcheck="false" placeholder="Type or paste your HTML here..."></textarea>
+      </section>
+
+      <!-- Web View Preview -->
+      <section class="preview-pane">
+        <div class="preview-header">
+          <span>Web View (Sandboxed)</span>
+          <button class="btn-secondary" id="reloadFrameBtn" style="padding: 2px 6px; font-size: 0.7rem;">Reload</button>
+        </div>
+        <iframe id="previewFrame" sandbox="allow-scripts allow-modals"></iframe>
+      </section>
+    </div>
+  </main>
+
+  <script>
+    const STORAGE_KEY = 'indexed_html_documents_v1';
+    let documents = JSON.parse(localStorage.getItem(STORAGE_KEY)) || [];
+    let currentId = null;
+
+    // Default template if store is empty
+    const DEFAULT_DOC = {
+      id: 'doc_' + Date.now(),
+      title: 'Welcome Card',
+      tags: 'demo, template',
+      code: `<!DOCTYPE html>
+<html>
+<head>
+  <style>
+    body {
+      font-family: sans-serif;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 90vh;
+      margin: 0;
+      background: #f0fdf4;
+      color: #166534;
+    }
+    .card {
+      background: white;
+      padding: 32px;
+      border-radius: 12px;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+      text-align: center;
+    }
+    h2 { margin-top: 0; }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <h2>Document Preview Ready</h2>
+    <p>Select any document in the sidebar to view it instantly.</p>
+  </div>
+</body>
+</html>`,
+      updatedAt: new Date().toISOString()
+    };
+
+    if (documents.length === 0) {
+      documents.push(DEFAULT_DOC);
+    }
+
+    // DOM Elements
+    const fileListEl = document.getElementById('fileList');
+    const searchInput = document.getElementById('searchInput');
+    const docTitle = document.getElementById('docTitle');
+    const docTags = document.getElementById('docTags');
+    const codeEditor = document.getElementById('codeEditor');
+    const previewFrame = document.getElementById('previewFrame');
+    const saveDocBtn = document.getElementById('saveDocBtn');
+    const newDocBtn = document.getElementById('newDocBtn');
+    const deleteDocBtn = document.getElementById('deleteDocBtn');
+    const downloadHtmlBtn = document.getElementById('downloadHtmlBtn');
+    const exportAllBtn = document.getElementById('exportAllBtn');
+    const reloadFrameBtn = document.getElementById('reloadFrameBtn');
+
+    function saveToStorage() {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(documents));
+    }
+
+    function renderPreview(htmlContent) {
+      previewFrame.srcdoc = htmlContent;
+    }
+
+    function renderSidebar(filteredDocs = documents) {
+      fileListEl.innerHTML = '';
+      filteredDocs.forEach(doc => {
+        const li = document.createElement('li');
+        li.className = `file-item ${doc.id === currentId ? 'active' : ''}`;
+        
+        const dateStr = new Date(doc.updatedAt).toLocaleDateString(undefined, {
+          month: 'short', day: 'numeric'
+        });
+
+        li.innerHTML = `
+          <div class="title">${escapeHtml(doc.title || 'Untitled')}</div>
+          <div class="meta">
+            <span>${doc.tags ? escapeHtml(doc.tags) : 'No tags'}</span>
+            <span>${dateStr}</span>
+          </div>
+        `;
+
+        li.addEventListener('click', () => loadDocument(doc.id));
+        fileListEl.appendChild(li);
+      });
+    }
+
+    function loadDocument(id) {
+      const doc = documents.find(d => d.id === id);
+      if (!doc) return;
+      currentId = doc.id;
+      docTitle.value = doc.title || '';
+      docTags.value = doc.tags || '';
+      codeEditor.value = doc.code || '';
+      renderPreview(doc.code || '');
+      renderSidebar();
+    }
+
+    function saveCurrentDoc() {
+      if (!currentId) return;
+      const index = documents.findIndex(d => d.id === currentId);
+      if (index === -1) return;
+
+      documents[index].title = docTitle.value.trim() || 'Untitled';
+      documents[index].tags = docTags.value.trim();
+      documents[index].code = codeEditor.value;
+      documents[index].updatedAt = new Date().toISOString();
+
+      saveToStorage();
+      renderSidebar();
+      renderPreview(codeEditor.value);
+    }
+
+    function createNewDocument() {
+      const newDoc = {
+        id: 'doc_' + Date.now(),
+        title: 'New Page',
+        tags: '',
+        code: '<!DOCTYPE html>\n<html>\n<head>\n  <title>New Page</title>\n</head>\n<body>\n  <h1>Hello World</h1>\n</body>\n</html>',
+        updatedAt: new Date().toISOString()
+      };
+      documents.unshift(newDoc);
+      saveToStorage();
+      loadDocument(newDoc.id);
+    }
+
+    function deleteCurrentDocument() {
+      if (!confirm('Are you sure you want to delete this document?')) return;
+      documents = documents.filter(d => d.id !== currentId);
+      saveToStorage();
+      if (documents.length > 0) {
+        loadDocument(documents[0].id);
+      } else {
+        createNewDocument();
+      }
+    }
+
+    function downloadAsHtml() {
+      const activeDoc = documents.find(d => d.id === currentId);
+      if (!activeDoc) return;
+      const filename = `${activeDoc.title.replace(/[^a-z0-9_\-]/gi, '_')}.html`;
+      const blob = new Blob([codeEditor.value], { type: 'text/html' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = filename;
+      a.click();
+      URL.revokeObjectURL(url);
+    }
+
+    function exportBackup() {
+      const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(documents, null, 2));
+      const a = document.createElement('a');
+      a.href = dataStr;
+      a.download = `html_indexer_backup_${new Date().toISOString().slice(0,10)}.json`;
+      a.click();
+    }
+
+    function escapeHtml(str) {
+      return str.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+    }
+
+    // Event Listeners
+    saveDocBtn.addEventListener('click', saveCurrentDoc);
+    newDocBtn.addEventListener('click', createNewDocument);
+    deleteDocBtn.addEventListener('click', deleteCurrentDocument);
+    downloadHtmlBtn.addEventListener('click', downloadAsHtml);
+    exportAllBtn.addEventListener('click', exportBackup);
+    reloadFrameBtn.addEventListener('click', () => renderPreview(codeEditor.value));
+
+    // Live preview update on code edit
+    codeEditor.addEventListener('input', () => {
+      renderPreview(codeEditor.value);
+    });
+
+    searchInput.addEventListener('input', (e) => {
+      const q = e.target.value.toLowerCase();
+      const filtered = documents.filter(d => 
+        (d.title && d.title.toLowerCase().includes(q)) || 
+        (d.tags && d.tags.toLowerCase().includes(q)) ||
+        (d.code && d.code.toLowerCase().includes(q))
+      );
+      renderSidebar(filtered);
+    });
+
+    // Initialize
+    loadDocument(documents[0].id);
+  </script>
+</body>
+</html>

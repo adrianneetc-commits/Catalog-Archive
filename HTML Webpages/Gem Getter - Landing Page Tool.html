@@ -1,0 +1,888 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Gemini → Markdown</title>
+<link href="https://fonts.googleapis.com/css2?family=Space+Mono:ital,wght@0,400;0,700;1,400&family=Syne:wght@400;700;800&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0a0a0f;
+    --surface: #111118;
+    --surface2: #1a1a24;
+    --border: #2a2a3a;
+    --accent: #4f8ef7;
+    --accent2: #a78bfa;
+    --success: #34d399;
+    --warn: #fbbf24;
+    --danger: #f87171;
+    --text: #e8e8f0;
+    --muted: #6b6b88;
+    --mono: 'Space Mono', monospace;
+    --sans: 'Syne', sans-serif;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--sans);
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 40px 20px 80px;
+    position: relative;
+    overflow-x: hidden;
+  }
+
+  /* Background grid */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image:
+      linear-gradient(rgba(79,142,247,0.04) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(79,142,247,0.04) 1px, transparent 1px);
+    background-size: 40px 40px;
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  /* Ambient glow */
+  body::after {
+    content: '';
+    position: fixed;
+    top: -200px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 600px;
+    height: 600px;
+    background: radial-gradient(circle, rgba(79,142,247,0.08) 0%, transparent 70%);
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .container {
+    width: 100%;
+    max-width: 760px;
+    position: relative;
+    z-index: 1;
+  }
+
+  header {
+    text-align: center;
+    margin-bottom: 48px;
+    animation: fadeUp 0.6s ease both;
+  }
+
+  .logo-row {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    margin-bottom: 12px;
+  }
+
+  .logo-icon {
+    width: 36px;
+    height: 36px;
+    background: linear-gradient(135deg, var(--accent), var(--accent2));
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 18px;
+  }
+
+  h1 {
+    font-size: clamp(28px, 6vw, 42px);
+    font-weight: 800;
+    letter-spacing: -0.03em;
+    background: linear-gradient(120deg, #fff 30%, var(--accent2));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  .subtitle {
+    font-family: var(--mono);
+    font-size: 13px;
+    color: var(--muted);
+    letter-spacing: 0.05em;
+    margin-top: 6px;
+  }
+
+  /* Input card */
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 28px;
+    margin-bottom: 20px;
+    animation: fadeUp 0.6s ease 0.1s both;
+  }
+
+  .field-label {
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--muted);
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    margin-bottom: 10px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .field-label::before {
+    content: '';
+    display: inline-block;
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--accent);
+  }
+
+  .url-row {
+    display: flex;
+    gap: 10px;
+  }
+
+  input[type="text"] {
+    flex: 1;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 13px 16px;
+    color: var(--text);
+    font-family: var(--mono);
+    font-size: 13px;
+    outline: none;
+    transition: border-color 0.2s, box-shadow 0.2s;
+  }
+
+  input[type="text"]:focus {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px rgba(79,142,247,0.12);
+  }
+
+  input[type="text"]::placeholder { color: var(--muted); }
+
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 13px 22px;
+    border-radius: 10px;
+    font-family: var(--sans);
+    font-size: 14px;
+    font-weight: 700;
+    cursor: pointer;
+    border: none;
+    transition: all 0.2s;
+    white-space: nowrap;
+  }
+
+  .btn-primary {
+    background: linear-gradient(135deg, var(--accent), #3b6fd4);
+    color: #fff;
+    box-shadow: 0 4px 20px rgba(79,142,247,0.3);
+  }
+
+  .btn-primary:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 6px 28px rgba(79,142,247,0.45);
+  }
+
+  .btn-primary:active { transform: translateY(0); }
+  .btn-primary:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+
+  .btn-secondary {
+    background: var(--surface2);
+    color: var(--text);
+    border: 1px solid var(--border);
+  }
+
+  .btn-secondary:hover { border-color: var(--accent); color: var(--accent); }
+
+  /* Options */
+  .options-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 18px;
+    padding-top: 18px;
+    border-top: 1px solid var(--border);
+  }
+
+  .toggle-chip {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 12px;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 100px;
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--muted);
+    cursor: pointer;
+    transition: all 0.2s;
+    user-select: none;
+  }
+
+  .toggle-chip input { display: none; }
+
+  .toggle-chip:has(input:checked) {
+    border-color: var(--accent);
+    color: var(--accent);
+    background: rgba(79,142,247,0.08);
+  }
+
+  .toggle-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: currentColor;
+    opacity: 0.5;
+  }
+
+  .toggle-chip:has(input:checked) .toggle-dot { opacity: 1; }
+
+  /* Status bar */
+  .status-bar {
+    display: none;
+    align-items: center;
+    gap: 12px;
+    padding: 14px 20px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    margin-bottom: 20px;
+    font-family: var(--mono);
+    font-size: 12px;
+    color: var(--muted);
+    animation: fadeUp 0.3s ease both;
+  }
+
+  .status-bar.active { display: flex; }
+
+  .spinner {
+    width: 16px;
+    height: 16px;
+    border: 2px solid var(--border);
+    border-top-color: var(--accent);
+    border-radius: 50%;
+    animation: spin 0.7s linear infinite;
+    flex-shrink: 0;
+  }
+
+  .status-text { flex: 1; }
+  .status-step { color: var(--accent); font-weight: 700; }
+
+  /* Stats row */
+  .stats-row {
+    display: none;
+    gap: 12px;
+    margin-bottom: 20px;
+    animation: fadeUp 0.3s ease both;
+  }
+
+  .stats-row.active { display: flex; flex-wrap: wrap; }
+
+  .stat-chip {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 14px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    font-family: var(--mono);
+    font-size: 12px;
+  }
+
+  .stat-num { color: var(--accent); font-weight: 700; }
+  .stat-label { color: var(--muted); }
+
+  /* Output */
+  .output-card {
+    display: none;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    overflow: hidden;
+    animation: fadeUp 0.4s ease both;
+  }
+
+  .output-card.active { display: block; }
+
+  .output-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 16px 20px;
+    border-bottom: 1px solid var(--border);
+    background: var(--surface2);
+  }
+
+  .output-title {
+    font-family: var(--mono);
+    font-size: 12px;
+    color: var(--muted);
+    letter-spacing: 0.08em;
+  }
+
+  .output-actions { display: flex; gap: 8px; }
+
+  textarea {
+    width: 100%;
+    min-height: 480px;
+    background: transparent;
+    border: none;
+    padding: 20px;
+    color: var(--text);
+    font-family: var(--mono);
+    font-size: 13px;
+    line-height: 1.7;
+    resize: vertical;
+    outline: none;
+  }
+
+  /* Error */
+  .error-box {
+    display: none;
+    padding: 16px 20px;
+    background: rgba(248,113,113,0.08);
+    border: 1px solid rgba(248,113,113,0.3);
+    border-radius: 10px;
+    font-family: var(--mono);
+    font-size: 13px;
+    color: var(--danger);
+    margin-bottom: 20px;
+    animation: fadeUp 0.3s ease both;
+  }
+
+  .error-box.active { display: block; }
+
+  /* Proxy notice */
+  .notice {
+    padding: 14px 18px;
+    background: rgba(251,191,36,0.06);
+    border: 1px solid rgba(251,191,36,0.2);
+    border-radius: 10px;
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--warn);
+    line-height: 1.6;
+    margin-bottom: 20px;
+    animation: fadeUp 0.6s ease 0.2s both;
+  }
+
+  .notice strong { color: #fcd34d; }
+
+  /* How it works */
+  .steps {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 12px;
+    margin-top: 40px;
+    animation: fadeUp 0.6s ease 0.3s both;
+  }
+
+  .step {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 18px;
+  }
+
+  .step-num {
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--accent);
+    letter-spacing: 0.1em;
+    margin-bottom: 8px;
+  }
+
+  .step-title {
+    font-weight: 700;
+    font-size: 14px;
+    margin-bottom: 4px;
+  }
+
+  .step-desc {
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--muted);
+    line-height: 1.6;
+  }
+
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(12px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  @keyframes spin {
+    to { transform: rotate(360deg); }
+  }
+
+  .copy-flash {
+    color: var(--success) !important;
+    border-color: var(--success) !important;
+  }
+</style>
+</head>
+<body>
+<div class="container">
+
+  <header>
+    <div class="logo-row">
+      <div class="logo-icon">✦</div>
+      <h1>Gemini → MD</h1>
+    </div>
+    <p class="subtitle">// shared conversation converter</p>
+  </header>
+
+  <div class="notice">
+    <strong>⚠ CORS Note:</strong> Browsers block direct fetches to gemini.google.com. This tool uses a public CORS proxy (<code>api.allorigins.win</code>) to fetch shared links. For production use, run the Node.js version locally or use your own proxy.
+  </div>
+
+  <div class="card">
+    <div class="field-label">Gemini Share URL</div>
+    <div class="url-row">
+      <input type="text" id="urlInput" placeholder="https://gemini.google.com/share/..." autocomplete="off" spellcheck="false">
+      <button class="btn btn-primary" id="convertBtn" onclick="convert()">
+        <span>⚡</span> Convert
+      </button>
+    </div>
+
+    <div class="options-row">
+      <label class="toggle-chip">
+        <input type="checkbox" id="optCode" checked>
+        <span class="toggle-dot"></span> Code blocks
+      </label>
+      <label class="toggle-chip">
+        <input type="checkbox" id="optInline" checked>
+        <span class="toggle-dot"></span> Inline code
+      </label>
+      <label class="toggle-chip">
+        <input type="checkbox" id="optTables" checked>
+        <span class="toggle-dot"></span> Tables
+      </label>
+      <label class="toggle-chip">
+        <input type="checkbox" id="optLang" checked>
+        <span class="toggle-dot"></span> Detect language
+      </label>
+      <label class="toggle-chip">
+        <input type="checkbox" id="optLabels" checked>
+        <span class="toggle-dot"></span> Turn labels
+      </label>
+    </div>
+  </div>
+
+  <div class="status-bar" id="statusBar">
+    <div class="spinner"></div>
+    <div class="status-text">
+      <span class="status-step" id="statusStep">INIT</span>
+      <span id="statusMsg"> — Starting...</span>
+    </div>
+  </div>
+
+  <div class="error-box" id="errorBox"></div>
+
+  <div class="stats-row" id="statsRow"></div>
+
+  <div class="output-card" id="outputCard">
+    <div class="output-header">
+      <span class="output-title">OUTPUT // MARKDOWN</span>
+      <div class="output-actions">
+        <button class="btn btn-secondary" id="copyBtn" onclick="copyMd()">⎘ Copy</button>
+        <button class="btn btn-secondary" onclick="downloadMd()">↓ Download</button>
+      </div>
+    </div>
+    <textarea id="output" spellcheck="false" readonly></textarea>
+  </div>
+
+  <div class="steps">
+    <div class="step">
+      <div class="step-num">01 // FETCH</div>
+      <div class="step-title">Paste URL</div>
+      <div class="step-desc">Any gemini.google.com/share link works</div>
+    </div>
+    <div class="step">
+      <div class="step-num">02 // PARSE</div>
+      <div class="step-title">Smart Parse</div>
+      <div class="step-desc">Detects code, tables, inline snippets & language</div>
+    </div>
+    <div class="step">
+      <div class="step-num">03 // EXPORT</div>
+      <div class="step-title">Get Markdown</div>
+      <div class="step-desc">Copy to clipboard or download as .md file</div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+// ─── Language Detection ───────────────────────────────────────────────────────
+const LANG_PATTERNS = [
+  { lang: 'python',     re: /\b(def |import |from .+ import|print\(|elif |lambda |self\.|__init__)/ },
+  { lang: 'javascript', re: /\b(const |let |var |=>|async |await |require\(|module\.exports|console\.)/ },
+  { lang: 'typescript', re: /\b(interface |type |enum |readonly |as |implements |<T>|: string|: number|: boolean)/ },
+  { lang: 'jsx',        re: /(<[A-Z][A-Za-z]+[\s/>]|return \([\s\S]*<|useState|useEffect|React\.)/ },
+  { lang: 'html',       re: /<!DOCTYPE html|<html|<head>|<body|<div|<span|<p>|<a href/ },
+  { lang: 'css',        re: /\{[\s\S]*:\s*[^;{}]+;[\s\S]*\}|@media|@keyframes|\.[\w-]+\s*\{/ },
+  { lang: 'sql',        re: /\b(SELECT |INSERT |UPDATE |DELETE |FROM |WHERE |JOIN |CREATE TABLE|ALTER |DROP )/i },
+  { lang: 'bash',       re: /^(#!\/bin\/|sudo |apt-get |npm |pip |git |chmod |mkdir |echo |cd |ls )|\$\s/ },
+  { lang: 'json',       re: /^\s*[\[{][\s\S]*[\]}]\s*$/ },
+  { lang: 'yaml',       re: /^[\w-]+:\s*\n|^-\s+\w+:|^\s{2,}[\w-]+:\s/ },
+  { lang: 'rust',       re: /\b(fn |let mut |impl |pub struct |use std::|Result<|Option<|match |println!)/ },
+  { lang: 'go',         re: /\b(func |package |import \(|:=|fmt\.|go |defer |goroutine)/ },
+  { lang: 'java',       re: /\b(public class |private |protected |void |System\.out|new [A-Z]|@Override)/ },
+  { lang: 'c',          re: /\b(#include|printf\(|scanf\(|malloc\(|int main\(|->|NULL)/ },
+  { lang: 'cpp',        re: /\b(#include <iostream>|std::|cout|cin|endl|vector<|nullptr|template<)/ },
+  { lang: 'ruby',       re: /\b(def |end\b|puts |attr_|require '|do \||\.each|class .* < )/ },
+  { lang: 'php',        re: /<\?php|\$\w+\s*=|echo |->|\barray\(|function \w+\s*\(/ },
+  { lang: 'swift',      re: /\b(var |let |func |guard |import Foundation|@IBOutlet|@State|struct .+: View)/ },
+  { lang: 'kotlin',     re: /\b(fun |val |var |data class |companion object|->|?.|\?\.)/ },
+  { lang: 'r',          re: /\b(library\(|<-|data\.frame|ggplot|dplyr|c\(|lm\(|summary\()/ },
+  { lang: 'matlab',     re: /\b(function |end\b|fprintf|figure\(|plot\(|zeros\(|ones\(|matrix)/ },
+  { lang: 'markdown',   re: /^#+\s|^\*\*|^-{3,}|^\[.+\]\(.+\)|^>\s/ },
+  { lang: 'dockerfile', re: /^(FROM |RUN |CMD |EXPOSE |ENV |COPY |ADD |WORKDIR |ENTRYPOINT )/ },
+  { lang: 'toml',       re: /^\[[\w.]+\]|^\w+ = ("|'|\d|\[)/ },
+];
+
+function detectLang(code) {
+  const trimmed = code.trim();
+  for (const { lang, re } of LANG_PATTERNS) {
+    if (re.test(trimmed)) return lang;
+  }
+  return '';
+}
+
+// ─── HTML → Markdown converter ────────────────────────────────────────────────
+function htmlToMarkdown(html, opts) {
+  const div = document.createElement('div');
+  div.innerHTML = html;
+  return nodeToMd(div, opts).trim();
+}
+
+function nodeToMd(node, opts, depth = 0) {
+  if (node.nodeType === 3) return node.textContent; // text node
+  if (node.nodeType !== 1) return '';
+
+  const tag = node.tagName?.toLowerCase();
+  const children = () => Array.from(node.childNodes).map(c => nodeToMd(c, opts, depth)).join('');
+
+  switch (tag) {
+    case 'h1': return `\n# ${children()}\n`;
+    case 'h2': return `\n## ${children()}\n`;
+    case 'h3': return `\n### ${children()}\n`;
+    case 'h4': return `\n#### ${children()}\n`;
+    case 'h5': return `\n##### ${children()}\n`;
+    case 'h6': return `\n###### ${children()}\n`;
+
+    case 'p': return `\n${children()}\n`;
+    case 'br': return '\n';
+
+    case 'strong':
+    case 'b': return `**${children()}**`;
+
+    case 'em':
+    case 'i': return `*${children()}*`;
+
+    case 's':
+    case 'del': return `~~${children()}~~`;
+
+    case 'a': {
+      const href = node.getAttribute('href') || '';
+      return `[${children()}](${href})`;
+    }
+
+    case 'img': {
+      const alt = node.getAttribute('alt') || '';
+      const src = node.getAttribute('src') || '';
+      return `![${alt}](${src})`;
+    }
+
+    case 'code': {
+      // inline code
+      if (opts.inline && node.closest && !node.closest('pre')) {
+        return `\`${node.textContent}\``;
+      }
+      return node.textContent;
+    }
+
+    case 'pre': {
+      if (!opts.code) return node.textContent;
+      const codeEl = node.querySelector('code');
+      const raw = (codeEl || node).textContent;
+      let lang = '';
+      if (opts.lang) {
+        // try class first (e.g. class="language-python")
+        const cls = (codeEl || node).className || '';
+        const m = cls.match(/language-(\w+)/);
+        lang = m ? m[1] : detectLang(raw);
+      }
+      return `\n\`\`\`${lang}\n${raw.trim()}\n\`\`\`\n`;
+    }
+
+    case 'ul': {
+      return '\n' + Array.from(node.children).map(li =>
+        `- ${nodeToMd(li, opts, depth).trim()}`
+      ).join('\n') + '\n';
+    }
+
+    case 'ol': {
+      return '\n' + Array.from(node.children).map((li, i) =>
+        `${i + 1}. ${nodeToMd(li, opts, depth).trim()}`
+      ).join('\n') + '\n';
+    }
+
+    case 'li': return children();
+
+    case 'blockquote': return '\n' + children().trim().split('\n').map(l => `> ${l}`).join('\n') + '\n';
+
+    case 'hr': return '\n---\n';
+
+    case 'table': {
+      if (!opts.tables) return children();
+      return parseTable(node);
+    }
+
+    default: return children();
+  }
+}
+
+function parseTable(table) {
+  const rows = Array.from(table.querySelectorAll('tr'));
+  if (!rows.length) return '';
+
+  const getCells = row => Array.from(row.querySelectorAll('th, td')).map(c => c.innerText.trim().replace(/\|/g, '\\|'));
+
+  const headerCells = getCells(rows[0]);
+  const sep = headerCells.map(() => '---');
+  const bodyRows = rows.slice(1).map(getCells);
+
+  const fmt = cells => `| ${cells.join(' | ')} |`;
+  return '\n' + [fmt(headerCells), fmt(sep), ...bodyRows.map(fmt)].join('\n') + '\n';
+}
+
+// ─── Inline code detection (post-process plain text) ─────────────────────────
+function wrapInlineCode(text) {
+  // Wrap things that look like code but weren't in <code> tags
+  return text
+    .replace(/(?<![`\w])((?:[a-zA-Z_$][\w$]*\.)+[a-zA-Z_$][\w$]*(?:\(.*?\))?)(?![`\w])/g, '`$1`') // method.chains()
+    .replace(/(?<![`])\b([A-Z_]{3,})\b(?![`])/g, (m) => `\`${m}\``); // CONSTANTS
+}
+
+// ─── Core parser: extract turns from fetched HTML ────────────────────────────
+function parseGeminiHtml(rawHtml, opts) {
+  const parser = new DOMParser();
+  const doc = parser.parseFromString(rawHtml, 'text/html');
+
+  // Stats trackers
+  let stats = { turns: 0, codeBlocks: 0, tables: 0, inlineCode: 0 };
+
+  // Try to get title
+  const title = doc.querySelector('h1')?.innerText?.trim()
+    || doc.querySelector('title')?.textContent?.trim()
+    || 'Gemini Conversation';
+
+  let md = `# ${title}\n\n`;
+  md += `> Exported via Gemini→MD converter\n\n---\n\n`;
+
+  // Candidate selectors for conversation turns
+  const turnSelectors = [
+    '[class*="conversation-turn"]',
+    '[class*="message"]',
+    '[class*="turn"]',
+    '[class*="response"]',
+    '[class*="query"]',
+    'article',
+    '[role="article"]',
+    '[class*="human"]',
+    '[class*="model"]',
+    '[class*="user"]',
+    '[class*="assistant"]',
+  ];
+
+  let turns = [];
+  for (const sel of turnSelectors) {
+    const found = doc.querySelectorAll(sel);
+    if (found.length >= 2) {
+      turns = Array.from(found);
+      break;
+    }
+  }
+
+  // Fallback: grab all major content blocks
+  if (!turns.length) {
+    turns = Array.from(doc.querySelectorAll('main p, main li, main pre, main table, main h2, main h3, main h4'));
+  }
+
+  if (!turns.length) {
+    // Last resort: entire body
+    turns = [doc.body];
+  }
+
+  const seen = new Set();
+
+  turns.forEach((el, i) => {
+    const rawInner = el.innerHTML;
+    if (!rawInner || rawInner.trim().length < 5) return;
+
+    const key = el.innerText?.trim().slice(0, 80);
+    if (seen.has(key)) return;
+    seen.add(key);
+
+    // Detect role
+    const cls = (el.className || '').toLowerCase() + ' ' + (el.getAttribute('data-role') || '');
+    const isUser = /user|human|query|prompt/.test(cls);
+    const isModel = /model|gemini|response|assistant/.test(cls);
+
+    let label = '';
+    if (opts.labels) {
+      if (isUser) label = '### 🧑 User\n\n';
+      else if (isModel) label = '### ✦ Gemini\n\n';
+      else label = i % 2 === 0 ? '### 🧑 User\n\n' : '### ✦ Gemini\n\n';
+    }
+
+    // Count pre/code before conversion
+    stats.codeBlocks += el.querySelectorAll('pre').length;
+    stats.tables += el.querySelectorAll('table').length;
+    stats.inlineCode += el.querySelectorAll('code:not(pre code)').length;
+
+    let converted = htmlToMarkdown(rawInner, opts);
+
+    // Clean up excessive blank lines
+    converted = converted.replace(/\n{4,}/g, '\n\n\n').trim();
+
+    if (converted.length > 5) {
+      md += label + converted + '\n\n---\n\n';
+      stats.turns++;
+    }
+  });
+
+  return { md, title, stats };
+}
+
+// ─── Main convert function ────────────────────────────────────────────────────
+let lastTitle = 'gemini-export';
+
+async function convert() {
+  const url = document.getElementById('urlInput').value.trim();
+  if (!url) return showError('Please enter a Gemini share URL.');
+  if (!url.includes('gemini.google.com')) return showError('URL must be a gemini.google.com share link.');
+
+  const opts = {
+    code:   document.getElementById('optCode').checked,
+    inline: document.getElementById('optInline').checked,
+    tables: document.getElementById('optTables').checked,
+    lang:   document.getElementById('optLang').checked,
+    labels: document.getElementById('optLabels').checked,
+  };
+
+  clearState();
+  setStatus('FETCH', 'Requesting page via CORS proxy...');
+  document.getElementById('convertBtn').disabled = true;
+
+  try {
+    const proxyUrl = `https://api.allorigins.win/get?url=${encodeURIComponent(url)}`;
+    setStatus('FETCH', 'Connecting to allorigins proxy...');
+
+    const res = await fetch(proxyUrl);
+    if (!res.ok) throw new Error(`HTTP ${res.status} from proxy`);
+
+    const json = await res.json();
+    const rawHtml = json.contents;
+
+    if (!rawHtml || rawHtml.length < 200) throw new Error('Empty or invalid response from proxy. The share link may be private or expired.');
+
+    setStatus('PARSE', 'Parsing HTML structure...');
+    await sleep(200);
+
+    const { md, title, stats } = parseGeminiHtml(rawHtml, opts);
+    lastTitle = title.replace(/[^a-z0-9]/gi, '_').toLowerCase() || 'gemini_export';
+
+    setStatus('DONE', 'Conversion complete!');
+    await sleep(300);
+
+    showOutput(md, stats);
+
+  } catch (err) {
+    showError(`${err.message}`);
+  } finally {
+    document.getElementById('convertBtn').disabled = false;
+    document.getElementById('statusBar').classList.remove('active');
+  }
+}
+
+// ─── UI helpers ───────────────────────────────────────────────────────────────
+function setStatus(step, msg) {
+  document.getElementById('statusBar').classList.add('active');
+  document.getElementById('statusStep').textContent = step;
+  document.getElementById('statusMsg').textContent = ` — ${msg}`;
+}
+
+function showError(msg) {
+  const box = document.getElementById('errorBox');
+  box.textContent = `⚠ Error: ${msg}`;
+  box.classList.add('active');
+  document.getElementById('statusBar').classList.remove('active');
+}
+
+function clearState() {
+  document.getElementById('errorBox').classList.remove('active');
+  document.getElementById('outputCard').classList.remove('active');
+  document.getElementById('statsRow').classList.remove('active');
+  document.getElementById('statsRow').innerHTML = '';
+}
+
+function showOutput(md, stats) {
+  document.getElementById('output').value = md;
+  document.getElementById('outputCard').classList.add('active');
+
+  const row = document.getElementById('statsRow');
+  row.innerHTML = `
+    <div class="stat-chip"><span class="stat-num">${stats.turns}</span><span class="stat-label">turns</span></div>
+    <div class="stat-chip"><span class="stat-num">${stats.codeBlocks}</span><span class="stat-label">code blocks</span></div>
+    <div class="stat-chip"><span class="stat-num">${stats.tables}</span><span class="stat-label">tables</span></div>
+    <div class="stat-chip"><span class="stat-num">${stats.inlineCode}</span><span class="stat-label">inline code</span></div>
+    <div class="stat-chip"><span class="stat-num">${md.length.toLocaleString()}</span><span class="stat-label">chars</span></div>
+  `;
+  row.classList.add('active');
+}
+
+function copyMd() {
+  const ta = document.getElementById('output');
+  navigator.clipboard.writeText(ta.value).then(() => {
+    const btn = document.getElementById('copyBtn');
+    btn.classList.add('copy-flash');
+    btn.textContent = '✓ Copied!';
+    setTimeout(() => { btn.classList.remove('copy-flash'); btn.textContent = '⎘ Copy'; }, 1800);
+  });
+}
+
+function downloadMd() {
+  const md = document.getElementById('output').value;
+  const blob = new Blob([md], { type: 'text/markdown' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = `${lastTitle}.md`;
+  a.click();
+  URL.revokeObjectURL(a.href);
+}
+
+function sleep(ms) { return new Promise(r => setTimeout(r, ms)); }
+
+// Enter key shortcut
+document.getElementById('urlInput').addEventListener('keydown', e => {
+  if (e.key === 'Enter') convert();
+});
+</script>
+</body>
+</html>

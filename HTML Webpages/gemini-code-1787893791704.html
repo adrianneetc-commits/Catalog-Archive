@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Markdown Live Preview & Chat Exporter</title>
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <style>
+        :root {
+            --bg-color: #121212;
+            --panel-bg: #1e1e1e;
+            --text-color: #d4d4d4;
+            --accent-color: #007aff;
+            --accent-hover: #005bb5;
+            --border-color: #333;
+            --preview-bg: #ffffff;
+            --preview-text: #333333;
+            --export-btn: #4caf50;
+            --sidebar-width: 350px;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            margin: 0;
+            display: flex;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        /* Sidebar Styling */
+        #sidebar {
+            width: var(--sidebar-width);
+            background: var(--panel-bg);
+            border-right: 1px solid var(--border-color);
+            display: flex;
+            flex-direction: column;
+            transition: transform 0.3s ease;
+            position: relative;
+            z-index: 10;
+        }
+
+        #sidebar.hidden {
+            transform: translateX(-100%);
+            position: absolute;
+        }
+
+        /* Toggle Button */
+        #toggle-btn {
+            position: fixed;
+            top: 15px;
+            left: 15px;
+            z-index: 20;
+            background: var(--accent-color);
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+        }
+
+        #controls {
+            padding: 70px 20px 20px 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        button {
+            background-color: var(--accent-color);
+            color: white;
+            border: none;
+            padding: 12px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 13px;
+            transition: 0.2s;
+            text-align: left;
+        }
+
+        button:hover { background-color: var(--accent-hover); }
+        .btn-export { background-color: var(--export-btn); }
+        .btn-export:hover { background-color: #43a047; }
+
+        .status { font-size: 11px; color: #888; margin-top: 5px; text-align: center; }
+
+        /* Editor Panel */
+        .panel {
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+            margin: 0 20px 20px 20px;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            overflow: hidden;
+        }
+
+        .panel-header {
+            background: #252526;
+            padding: 10px 15px;
+            font-size: 10px;
+            font-weight: 700;
+            color: #888;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        textarea {
+            flex-grow: 1;
+            padding: 15px;
+            border: none;
+            background: #1a1a1a;
+            color: #9cdcfe;
+            font-family: 'Menlo', monospace;
+            font-size: 14px;
+            resize: none;
+            outline: none;
+        }
+
+        /* Main Content area */
+        #main-content {
+            flex-grow: 1;
+            background: var(--preview-bg);
+            position: relative;
+            overflow-y: auto;
+            transition: margin-left 0.3s ease;
+        }
+
+        #preview-container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 60px 40px;
+            color: var(--preview-text);
+            line-height: 1.6;
+        }
+
+        /* Standard Markdown Preview Styling */
+        #preview-container h1, #preview-container h2 { border-bottom: 1px solid #eaecef; padding-bottom: 0.3em; }
+        #preview-container code { background: rgba(27,31,35,0.05); padding: 0.2em 0.4em; border-radius: 3px; }
+        #preview-container pre { background: #f6f8fa; padding: 16px; border-radius: 6px; overflow: auto; }
+
+    </style>
+</head>
+<body>
+
+    <button id="toggle-btn" onclick="toggleSidebar()">≡</button>
+
+    <div id="sidebar">
+        <div id="controls">
+            <button onclick="copyMarkdown()">📄 Copy Markdown</button>
+            <button onclick="copyHTML()">🌐 Copy HTML</button>
+            <button onclick="exportMarkdown()">📥 Export .md</button>
+            <button class="btn-export" onclick="exportInteractiveChat()">✨ Export Interactive Chat</button>
+            <span id="msg" class="status">Editor Ready</span>
+        </div>
+
+        <div class="panel">
+            <div class="panel-header">Markdown Input</div>
+            <textarea id="md-input" spellcheck="false"></textarea>
+        </div>
+    </div>
+
+    <div id="main-content">
+        <div id="preview-container"></div>
+    </div>
+
+    <script>
+        const inputArea = document.getElementById('md-input');
+        const previewArea = document.getElementById('preview-container');
+        const msgElement = document.getElementById('msg');
+        const sidebar = document.getElementById('sidebar');
+
+        marked.setOptions({ breaks: true, gfm: true });
+
+        function toggleSidebar() {
+            sidebar.classList.toggle('hidden');
+        }
+
+        inputArea.addEventListener('input', () => {
+            previewArea.innerHTML = marked.parse(inputArea.value);
+        });
+
+        function showStatus(text, isError = false) {
+            msgElement.innerText = text;
+            msgElement.style.color = isError ? "#ff4444" : "#4cd964";
+            setTimeout(() => { msgElement.innerText = "Editor Ready"; msgElement.style.color = "#888"; }, 2000);
+        }
+
+        // The logic you provided for interactive exports
+        function convertMarkdownToInteractiveHTML(markdown, userName = "Adrianne") {
+            let chatContent = markdown
+                .replace(/```(\w+)?\n([\s\S]*?)```/g, (match, lang, code) => {
+                    return `<div class="code-block"><button class="copy-btn" onclick="copySnippet(this)">Copy</button><pre><code class="language-${lang || 'text'}">${code.trim()}</code></pre></div>`;
+                })
+                .split(/\n(?=(?:User|Gemini|Adrianne):)/g)
+                .map(msg => {
+                    const isGemini = msg.trim().startsWith("Gemini:");
+                    const label = isGemini ? "Gemini" : userName;
+                    const cssClass = isGemini ? "gemini" : "user";
+                    const content = msg.replace(/^(?:User|Gemini|Adrianne):\s*/, "").trim();
+                    if (!content) return "";
+                    return `<div class="message ${cssClass}"><span class="label">${label}</span>${content.replace(/\n/g, '<br>')}</div>`;
+                }).join("");
+
+            return `<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><style>
+                :root { --bg: #f8f9fa; --card-bg: #ffffff; --primary: #007bff; --secondary: #6c757d; --code-bg: #1e1e1e; --accent: #4caf50; }
+                body { font-family: sans-serif; background: var(--bg); max-width: 800px; margin: 40px auto; padding: 20px; }
+                .header { display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #ddd; padding-bottom: 20px; margin-bottom: 30px; }
+                .download-btn { background: var(--primary); color: white; border: none; padding: 10px 20px; border-radius: 6px; cursor: pointer; font-weight: bold; }
+                .message { background: var(--card-bg); padding: 20px; border-radius: 12px; margin-bottom: 20px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); border-left: 5px solid var(--secondary); }
+                .user { border-left-color: var(--primary); } .gemini { border-left-color: var(--accent); }
+                .label { font-weight: 800; font-size: 0.7rem; text-transform: uppercase; margin-bottom: 10px; display: block; color: #888; }
+                .code-block { position: relative; margin: 15px 0; background: var(--code-bg); border-radius: 8px; padding: 15px; }
+                pre { margin: 0; overflow-x: auto; color: #dcdcdc; }
+                .copy-btn { position: absolute; top: 10px; right: 10px; background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); color: #fff; padding: 4px 8px; border-radius: 4px; cursor: pointer; }
+            </style></head><body>
+            <div class="header"><h1>Project Export</h1><button class="download-btn" onclick="downloadPage()">Download HTML</button></div>
+            ${chatContent}
+            <script>
+                function copySnippet(btn) { const code = btn.nextElementSibling.innerText; navigator.clipboard.writeText(code); btn.innerText = "Copied!"; setTimeout(() => btn.innerText = "Copy", 2000); }
+                function downloadPage() { const blob = new Blob([document.documentElement.outerHTML], { type: 'text/html' }); const url = URL.createObjectURL(blob); const a = document.createElement('a'); a.href = url; a.download = 'Chat_Export.html'; a.click(); }
+            <\/script></body></html>`;
+        }
+
+        function exportInteractiveChat() {
+            if (!inputArea.value) return;
+            const fullHtml = convertMarkdownToInteractiveHTML(inputArea.value);
+            const blob = new Blob([fullHtml], { type: 'text/html' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url; a.download = `Chat_Export_${Date.now()}.html`; a.click();
+            showStatus("Interactive Exported!");
+        }
+
+        async function copyMarkdown() { await navigator.clipboard.writeText(inputArea.value); showStatus("MD Copied!"); }
+        async function copyHTML() { await navigator.clipboard.writeText(previewArea.innerHTML); showStatus("HTML Copied!"); }
+        function exportMarkdown() {
+            const blob = new Blob([inputArea.value], { type: 'text/markdown' });
+            const a = document.createElement('a');
+            a.href = URL.createObjectURL(blob); a.download = `doc-${Date.now()}.md`; a.click();
+            showStatus("MD Exported!");
+        }
+
+        // Initialize
+        inputArea.value = "Adrianne: Hello! Type your chat here.\n\nGemini: Use 'User:' or 'Gemini:' to trigger the interactive bubble style in the export!";
+        previewArea.innerHTML = marked.parse(inputArea.value);
+    </script>
+</body>
+</html>

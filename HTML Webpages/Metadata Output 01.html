@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Metadata Output 01</title>
+<!-- ── WEBTOOL-AID-YJOQL  ─────────────────────────────────────────── -->
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+      background: #ffffff;
+      color: #37352f;
+      padding: 40px 48px;
+      max-width: 1200px;
+      margin: 0 auto;
+      font-size: 14px;
+      line-height: 1.6;
+    }
+
+    /* PAGE TITLE */
+    .page-title {
+      font-size: 28px;
+      font-weight: 700;
+      color: #e255a1;
+      margin-bottom: 24px;
+    }
+
+    /* FIVE COLUMN GRID */
+    .meta-grid {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 16px;
+      margin-bottom: 24px;
+    }
+
+    .meta-col {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    /* LABEL */
+    .col-label {
+      font-size: 11px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: #9b9b9b;
+      margin-bottom: 2px;
+    }
+
+    .col-divider {
+      border: none;
+      border-top: 1px solid #e8e8e7;
+      margin: 4px 0 6px;
+    }
+
+    /* DESCRIPTION */
+    .description {
+      color: #9b9b9b;
+      font-size: 13px;
+      line-height: 1.6;
+    }
+
+    /* PAGE CHIP */
+    .page-chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      background: #f1f1ef;
+      border-radius: 4px;
+      padding: 2px 7px;
+      font-size: 12.5px;
+      font-weight: 500;
+      color: #37352f;
+      text-decoration: none;
+      transition: background 0.15s;
+      width: fit-content;
+    }
+    .page-chip:hover { background: #e3e3e0; }
+    .page-chip .icon { font-size: 13px; }
+
+    /* DATABASE CHIP */
+    .db-chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      background: #eef3fc;
+      border-radius: 4px;
+      padding: 2px 7px;
+      font-size: 12.5px;
+      font-weight: 500;
+      color: #2a5db0;
+      text-decoration: none;
+      width: fit-content;
+    }
+
+    /* BULLET LIST */
+    .bullet-list {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+    .bullet-list li {
+      display: flex;
+      align-items: flex-start;
+      gap: 6px;
+      font-size: 13px;
+      color: #37352f;
+    }
+    .bullet-list li::before {
+      content: "•";
+      color: #b0b0aa;
+      flex-shrink: 0;
+      margin-top: 1px;
+    }
+
+    /* DIVIDER */
+    .full-divider {
+      border: none;
+      border-top: 1px solid #e8e8e7;
+      margin: 20px 0;
+    }
+
+    /* BREADCRUMB */
+    .breadcrumb {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 4px;
+      font-size: 12.5px;
+      line-height: 1.8;
+    }
+
+    .breadcrumb a {
+      text-decoration: none;
+      font-weight: 500;
+      border-radius: 3px;
+      padding: 0 2px;
+    }
+    .breadcrumb a:hover { text-decoration: underline; }
+
+    .sep { color: #9b9b9b; font-weight: 400; }
+
+    /* BREADCRUMB COLORS */
+    .bc-1  { color: #d9730d; }
+    .bc-2  { color: #9065b0; }
+    .bc-3  { color: #337ea9; }
+    .bc-4  { color: #0f7b6c; }
+    .bc-5  { color: #e255a1; }
+    .bc-6  { color: #e03e3e; }
+    .bc-7  { color: #d9730d; }
+    .bc-8  { color: #9065b0; }
+    .bc-9  { color: #337ea9; }
+    .bc-10 { color: #0f7b6c; }
+    .bc-11 { color: #e255a1; }
+    .bc-12 { color: #e03e3e; }
+  </style>
+</head>
+<body>
+
+  <!-- PAGE TITLE -->
+  <div class="page-title">Metadata Output 01</div>
+
+  <!-- 5-COLUMN METADATA GRID -->
+  <div class="meta-grid">
+
+    <!-- Col 1: Description -->
+    <div class="meta-col">
+      <span class="col-label">About</span>
+      <hr class="col-divider"/>
+      <p class="description">
+        This page provides structured metadata output generated from the
+        <a class="page-chip" href="https://app.notion.com/p/3b47aa5cbffd800cbce9c0ba68bea09b" style="display:inline;background:none;padding:0;color:#9b9b9b;font-weight:400;">Metadata Template</a>,
+        and is connected to its parent configuration page
+        <a class="page-chip" href="https://app.notion.com/p/3b47aa5cbffd80e5a0adfe3dbc11049a" style="display:inline;background:none;padding:0;color:#9b9b9b;font-weight:400;">Meta001</a>.
+      </p>
+    </div>
+
+    <!-- Col 2: Current Page -->
+    <div class="meta-col">
+      <span class="col-label">Current Page</span>
+      <hr class="col-divider"/>
+      <a class="page-chip" href="https://app.notion.com/p/d797aa5cbffd83d9a45e01398239ab0b">
+        <span class="icon">📄</span> Metadata Output 01
+      </a>
+    </div>
+
+    <!-- Col 3: Source Page + Parent DB -->
+    <div class="meta-col">
+      <span class="col-label">Source Page</span>
+      <hr class="col-divider"/>
+      <a class="page-chip" href="https://app.notion.com/p/e6a7aa5cbffd8313b224815a4d84222d">
+        <span class="icon">📄</span> Parent Page
+      </a>
+      <ul class="bullet-list" style="margin-top:4px;">
+        <li>
+          <a class="db-chip" href="https://app.notion.com/p/3b47aa5cbffd80e5a0adfe3dbc11049a">
+            🗄 Meta001
+          </a>
+        </li>
+      </ul>
+    </div>
+
+    <!-- Col 4: Databases -->
+    <div class="meta-col">
+      <span class="col-label">Databases</span>
+      <hr class="col-divider"/>
+      <ul class="bullet-list">
+        <li>
+          <a class="db-chip" href="https://app.notion.com/p/3b47aa5cbffd80e5a0adfe3dbc11049a">
+            🗄 Meta001
+          </a>
+        </li>
+        <li>
+          <a class="db-chip" href="https://app.notion.com/p/3b47aa5cbffd800cbce9c0ba68bea09b">
+            🗄 Metadata Template
+          </a>
+        </li>
+      </ul>
+    </div>
+
+    <!-- Col 5: Placed Pages -->
+    <div class="meta-col">
+      <span class="col-label">Placed Pages</span>
+      <hr class="col-divider"/>
+      <ul class="bullet-list">
+        <li>
+          <a class="page-chip" href="https://app.notion.com/p/3b47aa5cbffd80e5a0adfe3dbc11049a">
+            <span class="icon">📄</span> Meta001
+          </a>
+        </li>
+        <li>
+          <a class="page-chip" href="https://app.notion.com/p/3b47aa5cbffd800cbce9c0ba68bea09b">
+            <span class="icon">📄</span> Metadata Template
+          </a>
+        </li>
+        <li>
+          <a class="page-chip" href="https://app.notion.com/p/3b57aa5cbffd80f8a471fdfa83050839">
+            <span class="icon">📄</span> T E M P L A T E S
+          </a>
+        </li>
+        <li>
+          <a class="page-chip" href="https://app.notion.com/p/3a77aa5cbffd80648764e96d13733c17">
+            <span class="icon">📄</span> ★ Dashboard
+          </a>
+        </li>
+      </ul>
+    </div>
+
+  </div>
+
+  <!-- FULL DIVIDER -->
+  <hr class="full-divider"/>
+
+  <!-- BREADCRUMB TRAIL -->
+  <nav class="breadcrumb" aria-label="Breadcrumb">
+    <a class="bc-1" href="https://app.notion.com/p/3a77aa5cbffd80648764e96d13733c17">★ Dashboard</a>
+    <span class="sep">/</span>
+    <a class="bc-2" href="https://app.notion.com/p/3b47aa5cbffd804ca638c51eeda7c154">(ancestor)</a>
+    <span class="sep">/</span>
+    <a class="bc-3" href="https://app.notion.com/p/3b47aa5cbffd8025bdfff1ef4bc39254">(ancestor)</a>
+    <span class="sep">/</span>
+    <a class="bc-4" href="https://app.notion.com/p/3b47aa5cbffd803a827fd9851b8855d2">(ancestor)</a>
+    <span class="sep">/</span>
+    <a class="bc-5" href="https://app.notion.com/p/3b57aa5cbffd80988707e58f861a2cfe">(ancestor)</a>
+    <span class="sep">/</span>
+    <a class="bc-6" href="https://app.notion.com/p/3b57aa5cbffd80f8a471fdfa83050839">T E M P L A T E S</a>
+    <span class="sep">/</span>
+    <a class="bc-7" href="https://app.notion.com/p/3b47aa5cbffd800cbce9c0ba68bea09b">Metadata Template</a>
+    <span class="sep">/</span>
+    <a class="bc-8" href="https://app.notion.com/p/3b47aa5cbffd80e5a0adfe3dbc11049a">Meta001</a>
+    <span class="sep">/</span>
+    <a class="bc-9" href="https://app.notion.com/p/43a7aa5cbffd83fbb133019983567e93">(ancestor)</a>
+    <span class="sep">/</span>
+    <a class="bc-10" href="https://app.notion.com/p/e6a7aa5cbffd8313b224815a4d84222d">(parent)</a>
+    <span class="sep">/</span>
+    <a class="bc-11" href="https://app.notion.com/p/d797aa5cbffd83d9a45e01398239ab0b"><strong>Metadata Output 01</strong></a>
+  </nav>
+
+</body>
+</html>

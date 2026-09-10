@@ -1,0 +1,767 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Inkline — Syntax Highlighter</title>
+<!-- ── WEBTOOL-AID-NOEJN  ─────────────────────────────────────────── -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg: #0b0d12;
+    --bg-panel: #12151d;
+    --bg-panel-2: #171b25;
+    --border: #262b38;
+    --ink: #e7e9ee;
+    --ink-dim: #8890a4;
+    --ink-faint: #545c72;
+    --accent: #f2b035;
+    --accent-dim: #a67a2a;
+    --ok: #6fd6a0;
+    --radius: 10px;
+  }
+  *{ box-sizing: border-box; }
+  html,body{ margin:0; padding:0; }
+  body{
+    background: var(--bg);
+    color: var(--ink);
+    font-family: 'IBM Plex Mono', monospace;
+    min-height: 100vh;
+    background-image:
+      radial-gradient(ellipse 900px 500px at 15% -10%, rgba(242,176,53,0.07), transparent),
+      radial-gradient(ellipse 700px 500px at 100% 10%, rgba(111,214,160,0.05), transparent);
+  }
+  h1,h2,h3{ font-family: 'Space Grotesk', sans-serif; margin:0; }
+
+  ::selection{ background: rgba(242,176,53,0.35); }
+
+  /* ── Header ─────────────────────────────────────────── */
+  header{
+    max-width: 1180px;
+    margin: 0 auto;
+    padding: 48px 24px 28px;
+  }
+  .eyebrow{
+    display:flex; align-items:center; gap:10px;
+    font-size: 11px; letter-spacing: 0.14em; text-transform: uppercase;
+    color: var(--ink-faint); margin-bottom: 14px;
+  }
+  .eyebrow .dot{ width:6px; height:6px; border-radius:50%; background: var(--accent); box-shadow: 0 0 8px var(--accent); }
+  h1{ font-size: 40px; font-weight: 700; letter-spacing: -0.01em; }
+  h1 span{ color: var(--accent); }
+  header p{
+    color: var(--ink-dim); font-size: 14.5px; line-height: 1.6;
+    max-width: 560px; margin-top: 12px;
+  }
+
+  /* ── Layout ─────────────────────────────────────────── */
+  main{
+    max-width: 1180px; margin: 0 auto; padding: 0 24px 80px;
+    display: grid; grid-template-columns: 300px 1fr; gap: 20px;
+  }
+  @media (max-width: 880px){ main{ grid-template-columns: 1fr; } }
+
+  .panel{
+    background: var(--bg-panel);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    overflow: hidden;
+  }
+  .panel-head{
+    padding: 14px 16px;
+    border-bottom: 1px solid var(--border);
+    display:flex; align-items:center; justify-content: space-between;
+  }
+  .panel-head h3{ font-size: 12px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--ink-dim); font-weight: 600; }
+  .panel-body{ padding: 16px; }
+
+  /* ── Controls ───────────────────────────────────────── */
+  .field{ margin-bottom: 16px; }
+  .field label{
+    display:block; font-size: 11px; letter-spacing: 0.06em; text-transform: uppercase;
+    color: var(--ink-faint); margin-bottom: 7px;
+  }
+  select, textarea, button{ font-family: inherit; }
+  select{
+    width: 100%; background: var(--bg-panel-2); color: var(--ink);
+    border: 1px solid var(--border); border-radius: 7px; padding: 9px 10px;
+    font-size: 13px; appearance: none; cursor: pointer;
+    background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='10' height='6'><path d='M0 0l5 6 5-6z' fill='%238890a4'/></svg>");
+    background-repeat: no-repeat; background-position: right 12px center;
+  }
+  select:focus, textarea:focus{ outline: none; border-color: var(--accent-dim); }
+
+  .segmented{ display:flex; border: 1px solid var(--border); border-radius: 7px; overflow:hidden; }
+  .segmented button{
+    flex:1; background: var(--bg-panel-2); color: var(--ink-dim); border:none;
+    padding: 9px 8px; font-size: 12px; cursor:pointer; transition: all .15s;
+    border-right: 1px solid var(--border);
+  }
+  .segmented button:last-child{ border-right:none; }
+  .segmented button.active{ background: var(--accent); color: #1a1305; font-weight: 600; }
+
+  .detect-badge{
+    display:inline-flex; align-items:center; gap:6px;
+    font-size: 11px; color: var(--ok); margin-top: 8px; opacity: 0;
+    transition: opacity .2s;
+  }
+  .detect-badge.show{ opacity: 1; }
+  .detect-badge .dot{ width:5px; height:5px; border-radius:50%; background: var(--ok); }
+
+  /* Token legend — signature element, reflects live theme palette */
+  .legend{
+    display:flex; flex-wrap: wrap; gap: 7px 10px;
+  }
+  .legend .chip{
+    display:flex; align-items:center; gap:6px;
+    font-size: 10.5px; color: var(--ink-dim);
+  }
+  .legend .swatch{ width:9px; height:9px; border-radius: 2px; flex-shrink:0; }
+
+  textarea{
+    width: 100%; min-height: 220px; resize: vertical;
+    background: var(--bg-panel-2); color: var(--ink);
+    border: 1px solid var(--border); border-radius: 7px;
+    padding: 12px; font-size: 12.5px; line-height: 1.6;
+    font-family: 'JetBrains Mono', monospace;
+  }
+
+  .btn-row{ display:flex; gap: 10px; margin-top: 14px; }
+  button.btn{
+    border: none; border-radius: 7px; padding: 11px 16px;
+    font-size: 12.5px; font-weight: 600; cursor: pointer; letter-spacing: 0.01em;
+    transition: transform .1s, filter .15s;
+  }
+  button.btn:active{ transform: scale(0.97); }
+  .btn-primary{ background: var(--accent); color: #1a1305; flex: 1; }
+  .btn-primary:hover{ filter: brightness(1.08); }
+  .btn-ghost{ background: transparent; color: var(--ink-dim); border: 1px solid var(--border) !important; }
+  .btn-ghost:hover{ color: var(--ink); border-color: var(--ink-faint) !important; }
+
+  /* ── Output area ────────────────────────────────────── */
+  .tabs{ display:flex; gap: 2px; }
+  .tab{
+    background: transparent; border:none; color: var(--ink-faint);
+    padding: 14px 16px; font-size: 12px; letter-spacing: 0.06em; text-transform: uppercase;
+    cursor: pointer; border-bottom: 2px solid transparent; font-weight: 600;
+  }
+  .tab.active{ color: var(--ink); border-bottom-color: var(--accent); }
+  .tab:disabled{ opacity: 0.3; cursor: not-allowed; }
+
+  .output-toolbar{
+    display:flex; align-items:center; justify-content: space-between;
+    padding: 10px 16px; border-bottom: 1px solid var(--border);
+    background: var(--bg-panel-2);
+  }
+  .output-toolbar .meta{ font-size: 11px; color: var(--ink-faint); }
+  .copy-btn{
+    background: var(--bg-panel); border: 1px solid var(--border); color: var(--ink-dim);
+    border-radius: 6px; padding: 6px 12px; font-size: 11px; cursor:pointer;
+    display:flex; align-items:center; gap:6px; transition: all .15s;
+  }
+  .copy-btn:hover{ color: var(--accent); border-color: var(--accent-dim); }
+
+  .code-frame{
+    /* mac-style editor chrome */
+    padding: 0;
+  }
+  .chrome-bar{
+    display:flex; align-items:center; gap:7px;
+    padding: 10px 14px; border-bottom: 1px solid rgba(255,255,255,0.05);
+  }
+  .chrome-bar .light{ width:10px; height:10px; border-radius:50%; }
+  .chrome-bar .filename{
+    margin-left: 8px; font-size: 11.5px; color: var(--ink-faint);
+  }
+
+  #previewMount, #htmlOut, #cssOut{ display:none; }
+  #previewMount.active, #htmlOut.active, #cssOut.active{ display:block; }
+
+  .code-scroll{
+    overflow: auto; max-height: 560px;
+  }
+  .code-scroll pre{
+    margin:0; padding: 18px 20px; font-family: 'JetBrains Mono', monospace;
+    font-size: 12.5px; line-height: 1.7; white-space: pre; tab-size: 2;
+  }
+  .code-scroll pre code{ font-family: inherit; }
+
+  textarea.raw-view{
+    width:100%; min-height: 420px; border:none; border-radius:0;
+    background: var(--bg-panel); color: var(--ink-dim); font-size: 11.5px;
+    padding: 18px 20px; line-height:1.6;
+  }
+
+  .empty-state{
+    padding: 60px 20px; text-align:center; color: var(--ink-faint); font-size: 13px;
+  }
+  .empty-state .glyph{ font-size: 26px; margin-bottom: 10px; color: var(--ink-faint); }
+
+  /* ── Toast ──────────────────────────────────────────── */
+  #toast{
+    position: fixed; bottom: 26px; left: 50%; transform: translateX(-50%) translateY(20px);
+    background: var(--ink); color: #14161c; padding: 11px 20px; border-radius: 8px;
+    font-size: 12.5px; font-weight: 600; opacity:0; pointer-events:none;
+    transition: all .25s cubic-bezier(.2,.9,.3,1);
+    display:flex; align-items:center; gap:8px;
+  }
+  #toast.show{ opacity:1; transform: translateX(-50%) translateY(0); }
+
+  footer{
+    max-width: 1180px; margin: 0 auto; padding: 0 24px 50px;
+    color: var(--ink-faint); font-size: 11.5px;
+  }
+
+  ::-webkit-scrollbar{ width:10px; height:10px; }
+  ::-webkit-scrollbar-thumb{ background: var(--border); border-radius: 6px; }
+  ::-webkit-scrollbar-track{ background: transparent; }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="eyebrow"><span class="dot"></span> STANDALONE · CLIENT-SIDE · ZERO DEPENDENCIES</div>
+  <h1>Ink<span>line</span></h1>
+  <p>Paste raw code, pick a language and a theme, and generate syntax-highlighted HTML you can drop straight into docs, blogs, or READMEs — inline-styled or class-based, your call.</p>
+</header>
+
+<main>
+  <!-- ── Left: controls ── -->
+  <section class="panel">
+    <div class="panel-head"><h3>Configure</h3></div>
+    <div class="panel-body">
+
+      <div class="field">
+        <label for="langSelect">Language</label>
+        <select id="langSelect">
+          <option value="auto">Autodetect</option>
+          <option value="html">HTML</option>
+          <option value="css">CSS</option>
+          <option value="javascript">JavaScript</option>
+          <option value="typescript">TypeScript</option>
+          <option value="python">Python</option>
+          <option value="java">Java</option>
+          <option value="csharp">C#</option>
+          <option value="cpp">C++</option>
+          <option value="php">PHP</option>
+          <option value="go">Go</option>
+          <option value="ruby">Ruby</option>
+        </select>
+        <div class="detect-badge" id="detectBadge"><span class="dot"></span><span id="detectText"></span></div>
+      </div>
+
+      <div class="field">
+        <label for="themeSelect">Theme</label>
+        <select id="themeSelect">
+          <option value="midnight">Midnight (default)</option>
+          <option value="dracula">Dracula</option>
+          <option value="nord">Nord</option>
+          <option value="monokai">Monokai</option>
+          <option value="githubLight">GitHub Light</option>
+          <option value="solarizedLight">Solarized Light</option>
+        </select>
+      </div>
+
+      <div class="field">
+        <label>CSS Embedding</label>
+        <div class="segmented" id="modeToggle">
+          <button data-mode="inline" class="active">Inline Styles</button>
+          <button data-mode="classes">CSS Classes</button>
+        </div>
+      </div>
+
+      <div class="field" style="margin-bottom:0;">
+        <label>Theme Legend</label>
+        <div class="legend" id="legend"></div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ── Right: editor + output ── -->
+  <section style="display:flex; flex-direction:column; gap:20px;">
+
+    <div class="panel">
+      <div class="panel-head">
+        <h3>Paste Your Code</h3>
+        <button class="btn btn-ghost" id="demoBtn" style="padding:6px 12px; font-size:11px;">Load demo</button>
+      </div>
+      <div class="panel-body">
+        <textarea id="codeInput" placeholder="// paste code here...">function greet(name) {
+  // a friendly welcome
+  const message = `Hello, ${name}!`;
+  console.log(message);
+  return message;
+}
+
+greet("world");</textarea>
+        <div class="btn-row">
+          <button class="btn btn-primary" id="generateBtn">Generate ↵</button>
+          <button class="btn btn-ghost" id="clearBtn">Clear</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="panel">
+      <div class="panel-head" style="padding:0;">
+        <div class="tabs">
+          <button class="tab active" data-tab="preview">Preview</button>
+          <button class="tab" data-tab="html">HTML</button>
+          <button class="tab" data-tab="css" id="cssTab" disabled>CSS</button>
+        </div>
+      </div>
+      <div class="output-toolbar">
+        <span class="meta" id="outMeta">Nothing generated yet</span>
+        <button class="copy-btn" id="copyBtn">Copy ⧉</button>
+      </div>
+
+      <div id="previewMount" class="active">
+        <div class="code-frame">
+          <div class="chrome-bar" id="chromeBar">
+            <span class="light" style="background:#ff5f57"></span>
+            <span class="light" style="background:#febc2e"></span>
+            <span class="light" style="background:#28c840"></span>
+            <span class="filename" id="chromeFilename">snippet</span>
+          </div>
+          <div class="code-scroll" id="previewScroll">
+            <div class="empty-state">
+              <div class="glyph">⌁</div>
+              Paste some code on the left and hit Generate.
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div id="htmlOut">
+        <textarea class="raw-view" id="htmlRaw" readonly placeholder="Generated HTML will appear here…"></textarea>
+      </div>
+
+      <div id="cssOut">
+        <textarea class="raw-view" id="cssRaw" readonly placeholder="Generated CSS will appear here (classes mode only)…"></textarea>
+      </div>
+    </div>
+
+  </section>
+</main>
+
+<footer>Inkline runs entirely in your browser — nothing you paste is ever sent anywhere.</footer>
+
+<div id="toast">Copied!</div>
+
+<script>
+(function(){
+
+  /* ════════════════════════════════════════════════════════════
+     1. THEMES
+  ════════════════════════════════════════════════════════════ */
+  const THEMES = {
+    midnight: {
+      label: 'Midnight', bg: '#0d1117', fg: '#c9d1d9',
+      colors: { comment:'#6e7681', string:'#7ee787', number:'#79c0ff', keyword:'#ff7b72',
+        function:'#d2a8ff', decorator:'#ffa657', variable:'#ffa657', tag:'#7ee787',
+        attr:'#79c0ff', selector:'#d2a8ff', property:'#79c0ff', value:'#a5d6ff', symbol:'#ffa657' }
+    },
+    dracula: {
+      label: 'Dracula', bg: '#282a36', fg: '#f8f8f2',
+      colors: { comment:'#6272a4', string:'#f1fa8c', number:'#bd93f9', keyword:'#ff79c6',
+        function:'#50fa7b', decorator:'#ffb86c', variable:'#ffb86c', tag:'#ff79c6',
+        attr:'#50fa7b', selector:'#8be9fd', property:'#8be9fd', value:'#f1fa8c', symbol:'#ffb86c' }
+    },
+    nord: {
+      label: 'Nord', bg: '#2e3440', fg: '#d8dee9',
+      colors: { comment:'#616e88', string:'#a3be8c', number:'#b48ead', keyword:'#81a1c1',
+        function:'#88c0d0', decorator:'#d08770', variable:'#d08770', tag:'#81a1c1',
+        attr:'#8fbcbb', selector:'#88c0d0', property:'#8fbcbb', value:'#a3be8c', symbol:'#d08770' }
+    },
+    monokai: {
+      label: 'Monokai', bg: '#272822', fg: '#f8f8f2',
+      colors: { comment:'#75715e', string:'#e6db74', number:'#ae81ff', keyword:'#f92672',
+        function:'#a6e22e', decorator:'#fd971f', variable:'#fd971f', tag:'#f92672',
+        attr:'#a6e22e', selector:'#a6e22e', property:'#66d9ef', value:'#e6db74', symbol:'#fd971f' }
+    },
+    githubLight: {
+      label: 'GitHub Light', bg: '#ffffff', fg: '#24292f',
+      colors: { comment:'#6e7781', string:'#0a3069', number:'#0550ae', keyword:'#cf222e',
+        function:'#8250df', decorator:'#953800', variable:'#953800', tag:'#116329',
+        attr:'#0550ae', selector:'#8250df', property:'#0550ae', value:'#0a3069', symbol:'#953800' }
+    },
+    solarizedLight: {
+      label: 'Solarized Light', bg: '#fdf6e3', fg: '#657b83',
+      colors: { comment:'#93a1a1', string:'#2aa198', number:'#d33682', keyword:'#859900',
+        function:'#268bd2', decorator:'#cb4b16', variable:'#cb4b16', tag:'#268bd2',
+        attr:'#b58900', selector:'#6c71c4', property:'#268bd2', value:'#2aa198', symbol:'#cb4b16' }
+    }
+  };
+
+  const TOKEN_LABELS = { comment:'Comment', string:'String', number:'Number', keyword:'Keyword',
+    function:'Function', decorator:'Decorator', variable:'Variable', tag:'Tag', attr:'Attribute',
+    selector:'Selector', property:'Property', value:'Value', symbol:'Symbol' };
+
+  /* ════════════════════════════════════════════════════════════
+     2. UTILITIES — escaping + placeholder extraction
+  ════════════════════════════════════════════════════════════ */
+  function escapeHtml(str){
+    return str.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
+              .replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+  }
+
+  function span(cls, content){
+    return `<span class="hljs-${cls}">${content}</span>`;
+  }
+
+  function makeStore(){
+    const store = [];
+    return {
+      extract(str, re, cls){
+        return str.replace(re, (m) => {
+          const i = store.push({ cls, content: m }) - 1;
+          return `\u0001P${i}\u0001`;
+        });
+      },
+      restore(str){
+        return str.replace(/\u0001P(\d+)\u0001/g, (_, i) => span(store[i].cls, store[i].content));
+      }
+    };
+  }
+
+  /* ════════════════════════════════════════════════════════════
+     3. GENERIC CURLY-BRACE HIGHLIGHTER
+        (javascript, typescript, java, csharp, cpp, php, go)
+  ════════════════════════════════════════════════════════════ */
+  function highlightCurly(code, opts){
+    const store = makeStore();
+    let s = escapeHtml(code);
+
+    if (opts.blockComment) s = store.extract(s, /\/\*[\s\S]*?\*\//g, 'comment');
+    if (opts.lineComment)  s = store.extract(s, /\/\/.*$/gm, 'comment');
+    if (opts.hashComment)  s = store.extract(s, /#.*$/gm, 'comment');
+    if (opts.preprocessor) s = store.extract(s, /^\s*#\s*(include|define|ifdef|ifndef|endif|pragma)\b.*$/gm, 'decorator');
+
+    const strRe = opts.template
+      ? /`(?:\\.|[^`\\])*`|"(?:\\.|[^"\\])*"|'(?:\\.|[^'\\])*'/g
+      : /"(?:\\.|[^"\\])*"|'(?:\\.|[^'\\])*'/g;
+    s = store.extract(s, strRe, 'string');
+
+    s = s.replace(/\b0x[0-9a-fA-F]+\b|\b\d+\.?\d*(?:[eE][+-]?\d+)?[fFlLuU]?\b/g, m => span('number', m));
+
+    if (opts.decorators) s = s.replace(/@[A-Za-z_]\w*/g, m => span('decorator', m));
+    if (opts.phpVars)    s = s.replace(/\$[A-Za-z_]\w*/g, m => span('variable', m));
+
+    const kwRe = new RegExp('\\b(?:' + opts.keywords.join('|') + ')\\b', 'g');
+    s = s.replace(kwRe, m => span('keyword', m));
+
+    s = s.replace(/\b([A-Za-z_$][\w$]*)(?=\s*\()/g, m => span('function', m));
+
+    s = store.restore(s);
+    return s;
+  }
+
+  const CURLY_CONFIG = {
+    javascript: { blockComment:true, lineComment:true, template:true, keywords:
+      ['const','let','var','function','return','if','else','for','while','do','switch','case','break',
+       'continue','default','class','extends','super','new','this','typeof','instanceof','in','of','try',
+       'catch','finally','throw','import','export','from','as','async','await','yield','static','get','set',
+       'null','undefined','true','false','void','delete','with'] },
+    typescript: { blockComment:true, lineComment:true, template:true, decorators:true, keywords:
+      ['const','let','var','function','return','if','else','for','while','do','switch','case','break',
+       'continue','default','class','extends','super','new','this','typeof','instanceof','in','of','try',
+       'catch','finally','throw','import','export','from','as','async','await','yield','static','get','set',
+       'null','undefined','true','false','void','delete','interface','type','enum','implements','private',
+       'public','protected','readonly','namespace','declare','abstract','is','keyof','never','unknown','any',
+       'string','number','boolean'] },
+    java: { blockComment:true, lineComment:true, decorators:true, keywords:
+      ['public','private','protected','class','interface','extends','implements','static','final','void','new',
+       'return','if','else','for','while','do','switch','case','break','continue','default','try','catch',
+       'finally','throw','throws','import','package','this','super','null','true','false','abstract',
+       'synchronized','volatile','transient','enum','instanceof'] },
+    csharp: { blockComment:true, lineComment:true, decorators:true, keywords:
+      ['public','private','protected','internal','class','interface','static','void','new','return','if','else',
+       'for','foreach','while','do','switch','case','break','continue','default','try','catch','finally','throw',
+       'using','namespace','this','base','null','true','false','var','async','await','get','set','readonly',
+       'sealed','abstract','override','virtual','struct','enum'] },
+    cpp: { blockComment:true, lineComment:true, preprocessor:true, keywords:
+      ['int','float','double','char','bool','void','class','struct','public','private','protected','virtual',
+       'static','const','new','delete','return','if','else','for','while','do','switch','case','break',
+       'continue','default','try','catch','throw','namespace','using','template','typename','nullptr','true',
+       'false','this'] },
+    php: { blockComment:true, lineComment:true, phpVars:true, keywords:
+      ['function','return','if','else','elseif','for','foreach','while','do','switch','case','break','continue',
+       'default','class','extends','implements','public','private','protected','static','new','try','catch',
+       'finally','throw','namespace','use','echo','print','true','false','null','array','as','global','require',
+       'require_once','include','include_once'] },
+    go: { blockComment:true, lineComment:true, keywords:
+      ['func','package','import','var','const','type','struct','interface','return','if','else','for','range',
+       'switch','case','default','break','continue','go','defer','chan','map','make','new','nil','true','false',
+       'select'] }
+  };
+
+  function highlightPython(code){
+    const store = makeStore();
+    let s = escapeHtml(code);
+    s = store.extract(s, /#.*$/gm, 'comment');
+    s = store.extract(s, /(?:f|r|b|rb|fr|Rb|bR)?("""[\s\S]*?"""|'''[\s\S]*?'''|"(?:\\.|[^"\\])*"|'(?:\\.|[^'\\])*')/g, 'string');
+    s = s.replace(/\b0x[0-9a-fA-F]+\b|\b\d+\.?\d*(?:[eE][+-]?\d+)?\b/g, m => span('number', m));
+    s = s.replace(/@[A-Za-z_][\w.]*/g, m => span('decorator', m));
+    const kw = ['def','class','return','if','elif','else','for','while','break','continue','pass','import','from',
+      'as','try','except','finally','raise','with','lambda','yield','async','await','global','nonlocal','del',
+      'assert','None','True','False','and','or','not','in','is','self'];
+    s = s.replace(new RegExp('\\b(?:'+kw.join('|')+')\\b','g'), m => span('keyword', m));
+    s = s.replace(/\b([A-Za-z_][\w]*)(?=\s*\()/g, m => span('function', m));
+    s = store.restore(s);
+    return s;
+  }
+
+  function highlightRuby(code){
+    const store = makeStore();
+    let s = escapeHtml(code);
+    s = store.extract(s, /#.*$/gm, 'comment');
+    s = store.extract(s, /"(?:\\.|[^"\\])*"|'(?:\\.|[^'\\])*'/g, 'string');
+    s = s.replace(/\b\d+\.?\d*\b/g, m => span('number', m));
+    s = s.replace(/:[a-zA-Z_]\w*[?!]?/g, m => span('symbol', m));
+    s = s.replace(/[@$][a-zA-Z_]\w*/g, m => span('variable', m));
+    const kw = ['def','end','class','module','return','if','elsif','else','unless','while','until','for','in','do',
+      'case','when','break','next','begin','rescue','ensure','raise','require','require_relative','yield','lambda',
+      'proc','true','false','nil','self','and','or','not','attr_accessor','attr_reader','attr_writer','puts',
+      'private','public','protected'];
+    s = s.replace(new RegExp('\\b(?:'+kw.join('|')+')\\b','g'), m => span('keyword', m));
+    s = s.replace(/\b([a-zA-Z_][\w]*[?!]?)(?=\s*\()/g, m => span('function', m));
+    s = store.restore(s);
+    return s;
+  }
+
+  function highlightHtml(code){
+    const store = makeStore();
+    let s = escapeHtml(code);
+    s = store.extract(s, /&lt;!--[\s\S]*?--&gt;/g, 'comment');
+    s = store.extract(s, /&quot;[^&]*?&quot;|&#39;[^&]*?&#39;/g, 'string');
+    s = s.replace(/(&lt;\/?)([a-zA-Z][\w:-]*)/g, (m, p1, p2) => p1 + span('tag', p2));
+    s = s.replace(/([a-zA-Z-]+)(=)/g, (m, attr, eq) => span('attr', attr) + eq);
+    s = store.restore(s);
+    return s;
+  }
+
+  function highlightCss(code){
+    const store = makeStore();
+    let s = escapeHtml(code);
+    s = store.extract(s, /\/\*[\s\S]*?\*\//g, 'comment');
+    s = store.extract(s, /"(?:\\.|[^"\\])*"|'(?:\\.|[^'\\])*'/g, 'string');
+    s = s.replace(/@[\w-]+/g, m => span('keyword', m));
+    s = s.replace(/([^\{\};]+)(\{)/g, (m, sel, brace) => span('selector', sel.replace(/\s+$/,'')) + ' ' + brace);
+    s = s.replace(/([\w-]+)(\s*:\s*)([^;{}]+)(;)/g, (m, prop, colon, val, semi) =>
+      span('property', prop) + colon + span('value', val.trim()) + semi);
+    s = store.restore(s);
+    return s;
+  }
+
+  function highlight(code, lang){
+    if (CURLY_CONFIG[lang]) return highlightCurly(code, CURLY_CONFIG[lang]);
+    if (lang === 'python') return highlightPython(code);
+    if (lang === 'ruby')   return highlightRuby(code);
+    if (lang === 'html')   return highlightHtml(code);
+    if (lang === 'css')    return highlightCss(code);
+    return escapeHtml(code);
+  }
+
+  /* ════════════════════════════════════════════════════════════
+     4. AUTODETECT
+  ════════════════════════════════════════════════════════════ */
+  const DETECT_ORDER = [
+    { lang:'html', re: /<\/?[a-zA-Z][\w-]*(\s[^<>]*)?>/ },
+    { lang:'css', re: /^[^{};]+\{[\s\S]*?:[\s\S]*?;[\s\S]*?\}/m },
+    { lang:'typescript', re: /\binterface\s+\w+|\btype\s+\w+\s*=|:\s*(string|number|boolean|void|any)\b|\bimplements\b/ },
+    { lang:'python', re: /\bdef\s+\w+\s*\(.*\)\s*:|\belif\b|\bself\b|\b__init__\b|\bimport\s+\w+\s*$/m },
+    { lang:'ruby', re: /\bend\b\s*$|\bdo\s*\|.*\|\s*$|\bputs\b|attr_accessor|\bdef\s+\w+[\s\S]*\bend\b/m },
+    { lang:'php', re: /<\?php|\$\w+\s*=|\becho\b/ },
+    { lang:'go', re: /\bfunc\s+\w*\s*\(|\bpackage\s+\w+|:=|\bfmt\./ },
+    { lang:'csharp', re: /\busing System|\bnamespace\s+\w+|Console\.(Write|WriteLine)|\bpublic\s+(class|static)/ },
+    { lang:'java', re: /\bpublic\s+class\b|System\.out\.(print|println)|\bpublic\s+static\s+void\s+main/ },
+    { lang:'cpp', re: /#include\s*<|std::|cout\s*<<|cin\s*>>/ },
+    { lang:'javascript', re: /\b(const|let|var|function|=>|console\.)\b/ }
+  ];
+
+  function detectLang(code){
+    for (const { lang, re } of DETECT_ORDER) {
+      if (re.test(code)) return lang;
+    }
+    return 'javascript';
+  }
+
+  /* ════════════════════════════════════════════════════════════
+     5. DEMO SNIPPETS
+  ════════════════════════════════════════════════════════════ */
+  const DEMOS = {
+    javascript: `function greet(name) {\n  // a friendly welcome\n  const message = \`Hello, \${name}!\`;\n  console.log(message);\n  return message;\n}\n\ngreet("world");`,
+    typescript: `interface User {\n  name: string;\n  age: number;\n}\n\nfunction describe(user: User): string {\n  return \`\${user.name} is \${user.age}\`;\n}`,
+    python: `def fibonacci(n):\n    # classic recursive case\n    if n <= 1:\n        return n\n    return fibonacci(n - 1) + fibonacci(n - 2)\n\nprint(fibonacci(10))`,
+    java: `public class Main {\n    public static void main(String[] args) {\n        // print a greeting\n        System.out.println("Hello, world!");\n    }\n}`,
+    csharp: `using System;\n\nnamespace Demo {\n    class Program {\n        static void Main() {\n            Console.WriteLine("Hello, world!");\n        }\n    }\n}`,
+    cpp: `#include <iostream>\n\nint main() {\n    // classic entry point\n    std::cout << "Hello, world!" << std::endl;\n    return 0;\n}`,
+    php: `<?php\nfunction greet($name) {\n    echo "Hello, " . $name . "!";\n}\n\ngreet("world");\n?>`,
+    go: `package main\n\nimport "fmt"\n\nfunc main() {\n    // print a greeting\n    fmt.Println("Hello, world!")\n}`,
+    ruby: `def greet(name)\n  # a friendly welcome\n  puts "Hello, #{name}!"\nend\n\ngreet("world")`,
+    html: `<!DOCTYPE html>\n<html>\n<head>\n  <title>Demo</title>
+<!-- ── WEBTOOL-AID-NOEJN  ─────────────────────────────────────────── -->\n</head>\n<body>\n  <h1 class="title">Hello, world!</h1>\n</body>\n</html>`,
+    css: `.card {\n  /* soft rounded panel */\n  background: #12151d;\n  border-radius: 10px;\n  padding: 16px;\n}\n\n.card:hover {\n  border-color: #f2b035;\n}`
+  };
+
+  /* ════════════════════════════════════════════════════════════
+     6. UI STATE + WIRING
+  ════════════════════════════════════════════════════════════ */
+  const el = (id) => document.getElementById(id);
+  const langSelect = el('langSelect'), themeSelect = el('themeSelect');
+  const codeInput = el('codeInput'), detectBadge = el('detectBadge'), detectText = el('detectText');
+  const legend = el('legend'), modeToggle = el('modeToggle');
+  let embedMode = 'inline';
+  let lastResult = null;
+
+  function renderLegend(){
+    const theme = THEMES[themeSelect.value];
+    legend.innerHTML = Object.keys(theme.colors).map(k =>
+      `<span class="chip"><span class="swatch" style="background:${theme.colors[k]}"></span>${TOKEN_LABELS[k]}</span>`
+    ).join('');
+  }
+
+  function updateDetectBadge(){
+    if (langSelect.value !== 'auto') { detectBadge.classList.remove('show'); return; }
+    const guess = detectLang(codeInput.value || '');
+    detectText.textContent = 'Detected: ' + guess;
+    detectBadge.classList.add('show');
+  }
+
+  function buildInlineHtml(classHtml, theme){
+    return classHtml.replace(/class="hljs-([\w-]+)"/g, (m, t) => {
+      const color = theme.colors[t] || theme.fg;
+      return `style="color:${color}"`;
+    });
+  }
+
+  function buildCss(theme){
+    const rules = Object.keys(theme.colors).map(t => `.hljs-${t} { color: ${theme.colors[t]}; }`).join('\n');
+    return `pre.hljs-block {\n  background: ${theme.bg};\n  color: ${theme.fg};\n  padding: 18px 20px;\n  border-radius: 8px;\n  font-family: 'JetBrains Mono', 'Courier New', monospace;\n  font-size: 13px;\n  line-height: 1.7;\n  overflow-x: auto;\n}\n\n${rules}`;
+  }
+
+  function generate(){
+    const rawCode = codeInput.value;
+    if (!rawCode.trim()){
+      el('previewScroll').innerHTML = `<div class="empty-state"><div class="glyph">⌁</div>Paste some code on the left and hit Generate.</div>`;
+      el('outMeta').textContent = 'Nothing generated yet';
+      lastResult = null;
+      return;
+    }
+
+    const lang = langSelect.value === 'auto' ? detectLang(rawCode) : langSelect.value;
+    const theme = THEMES[themeSelect.value];
+    const classHtml = highlight(rawCode, lang);
+    const lineCount = rawCode.split('\n').length;
+
+    // Preview (always classes, injected as a scoped style block)
+    el('previewScroll').innerHTML =
+      `<style scoped>#previewScroll .hljs-block{background:${theme.bg};color:${theme.fg};} ${
+        Object.keys(theme.colors).map(t => `#previewScroll .hljs-${t}{color:${theme.colors[t]}}`).join(' ')
+      }</style><pre class="hljs-block"><code>${classHtml}</code></pre>`;
+    el('chromeFilename').textContent = 'snippet.' + extForLang(lang);
+
+    // HTML output
+    const wrappedClassHtml = `<pre class="hljs-block"><code class="hljs">\n${classHtml}\n</code></pre>`;
+    const htmlOutput = embedMode === 'inline'
+      ? `<pre style="background:${theme.bg};color:${theme.fg};padding:18px 20px;border-radius:8px;font-family:'JetBrains Mono','Courier New',monospace;font-size:13px;line-height:1.7;overflow-x:auto;"><code>\n${buildInlineHtml(classHtml, theme)}\n</code></pre>`
+      : wrappedClassHtml;
+
+    el('htmlRaw').value = htmlOutput;
+
+    // CSS output (classes mode only)
+    if (embedMode === 'classes') {
+      el('cssRaw').value = buildCss(theme);
+      el('cssTab').disabled = false;
+    } else {
+      el('cssRaw').value = '';
+      el('cssTab').disabled = true;
+      if (activeTab === 'css') setTab('preview');
+    }
+
+    el('outMeta').textContent = `${lang} · ${theme.label} · ${lineCount} line${lineCount === 1 ? '' : 's'} · ${embedMode === 'inline' ? 'inline styles' : 'CSS classes'}`;
+    lastResult = { html: htmlOutput, css: el('cssRaw').value };
+  }
+
+  function extForLang(lang){
+    const map = { javascript:'js', typescript:'ts', python:'py', java:'java', csharp:'cs', cpp:'cpp',
+      php:'php', go:'go', ruby:'rb', html:'html', css:'css' };
+    return map[lang] || 'txt';
+  }
+
+  /* ── Tabs ── */
+  let activeTab = 'preview';
+  function setTab(tab){
+    activeTab = tab;
+    document.querySelectorAll('.tab').forEach(t => t.classList.toggle('active', t.dataset.tab === tab));
+    el('previewMount').classList.toggle('active', tab === 'preview');
+    el('htmlOut').classList.toggle('active', tab === 'html');
+    el('cssOut').classList.toggle('active', tab === 'css');
+  }
+  document.querySelectorAll('.tab').forEach(t => t.addEventListener('click', () => {
+    if (!t.disabled) setTab(t.dataset.tab);
+  }));
+
+  /* ── Mode toggle ── */
+  modeToggle.addEventListener('click', (e) => {
+    const btn = e.target.closest('button');
+    if (!btn) return;
+    embedMode = btn.dataset.mode;
+    document.querySelectorAll('#modeToggle button').forEach(b => b.classList.toggle('active', b === btn));
+    if (lastResult) generate();
+  });
+
+  /* ── Copy ── */
+  function showToast(msg){
+    const t = el('toast');
+    t.textContent = msg;
+    t.classList.add('show');
+    clearTimeout(showToast._timer);
+    showToast._timer = setTimeout(() => t.classList.remove('show'), 1800);
+  }
+
+  el('copyBtn').addEventListener('click', async () => {
+    let text = '';
+    if (activeTab === 'preview' || activeTab === 'html') text = el('htmlRaw').value;
+    else if (activeTab === 'css') text = el('cssRaw').value;
+    if (!text) { showToast('Nothing to copy yet'); return; }
+    try {
+      await navigator.clipboard.writeText(text);
+      showToast('Copied ✓');
+    } catch (e) {
+      showToast('Copy failed — select manually');
+    }
+  });
+
+  /* ── Buttons ── */
+  el('generateBtn').addEventListener('click', generate);
+  el('clearBtn').addEventListener('click', () => {
+    codeInput.value = '';
+    updateDetectBadge();
+    generate();
+  });
+  el('demoBtn').addEventListener('click', () => {
+    const lang = langSelect.value === 'auto' ? 'javascript' : langSelect.value;
+    codeInput.value = DEMOS[lang] || DEMOS.javascript;
+    updateDetectBadge();
+    generate();
+  });
+
+  langSelect.addEventListener('change', () => { updateDetectBadge(); if (lastResult) generate(); });
+  themeSelect.addEventListener('change', () => { renderLegend(); if (lastResult) generate(); });
+  codeInput.addEventListener('input', updateDetectBadge);
+  codeInput.addEventListener('keydown', (e) => {
+    if ((e.metaKey || e.ctrlKey) && e.key === 'Enter') generate();
+  });
+
+  /* ── Init ── */
+  renderLegend();
+  updateDetectBadge();
+  generate();
+
+})();
+</script>
+</body>
+</html>
