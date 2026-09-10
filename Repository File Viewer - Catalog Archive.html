@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Repository File Viewer</title>
+  <!-- Highlight.js for code syntax highlighting -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github-dark.min.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+  <style>
+    :root {
+      --bg: #0d1117;
+      --sidebar-bg: #161b22;
+      --border: #30363d;
+      --text: #c9d1d9;
+      --active: #1f6feb;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      display: flex;
+      height: 100vh;
+      overflow: hidden;
+    }
+    #sidebar {
+      width: 300px;
+      min-width: 240px;
+      background: var(--sidebar-bg);
+      border-right: 1px solid var(--border);
+      display: flex;
+      flex-direction: column;
+    }
+    .header {
+      padding: 14px 16px;
+      font-weight: 600;
+      font-size: 14px;
+      border-bottom: 1px solid var(--border);
+    }
+    #file-tree {
+      list-style: none;
+      overflow-y: auto;
+      padding: 8px 0;
+      flex-grow: 1;
+    }
+    .tree-item {
+      padding: 6px 16px;
+      cursor: pointer;
+      font-size: 13px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      user-select: none;
+    }
+    .tree-item:hover { background: #21262d; }
+    .tree-item.active { background: var(--active); color: #fff; }
+    .folder { font-weight: 600; color: #8b949e; }
+    #main-panel {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      height: 100vh;
+      overflow: hidden;
+    }
+    #file-bar {
+      padding: 12px 20px;
+      font-size: 13px;
+      background: var(--sidebar-bg);
+      border-bottom: 1px solid var(--border);
+    }
+    #viewer-container {
+      flex: 1;
+      overflow: auto;
+      position: relative;
+    }
+    pre {
+      margin: 0;
+      min-height: 100%;
+      padding: 16px;
+      font-size: 13px;
+    }
+    iframe {
+      width: 100%;
+      height: 100%;
+      border: none;
+      background: #fff;
+    }
+    .status-msg {
+      padding: 24px;
+      color: #8b949e;
+      font-size: 14px;
+    }
+  </style>
+</head>
+<body>
+
+  <aside id="sidebar">
+    <div class="header" id="repo-title">Files</div>
+    <ul id="file-tree">
+      <li class="status-msg">Loading repository tree...</li>
+    </ul>
+  </aside>
+
+  <main id="main-panel">
+    <div id="file-bar">Select a file from the sidebar to view.</div>
+    <div id="viewer-container"></div>
+  </main>
+
+  <script>
+    // Configuration: replace with your GitHub username, repo name, and default branch
+    const GITHUB_OWNER = "adrianneetc-commits";
+    const GITHUB_REPO = "Catalog-Archive";
+    const BRANCH = "reorganize/deduplication-and-structure";
+
+    const treeEl = document.getElementById("file-tree");
+    const fileBar = document.getElementById("file-bar");
+    const container = document.getElementById("viewer-container");
+    document.getElementById("repo-title").innerText = `${GITHUB_OWNER}/${GITHUB_REPO}`;
+
+    async function loadTree() {
+      try {
+        const response = await fetch(
+          `https://api.github.com/repos/${GITHUB_OWNER}/${GITHUB_REPO}/git/trees/${BRANCH}?recursive=1`
+        );
+        if (!response.ok) throw new Error(`API error: ${response.status}`);
+        const data = await response.json();
+
+        treeEl.innerHTML = "";
+        data.tree.forEach(item => {
+          const li = document.createElement("li");
+          li.className = "tree-item" + (item.type === "tree" ? " folder" : "");
+          li.textContent = (item.type === "tree" ? "📁 " : "📄 ") + item.path;
+
+          if (item.type === "blob") {
+            li.addEventListener("click", () => {
+              document.querySelectorAll(".tree-item").forEach(el => el.classList.remove("active"));
+              li.classList.add("active");
+              loadFile(item.path);
+            });
+          }
+          treeEl.appendChild(li);
+        });
+      } catch (err) {
+        treeEl.innerHTML = `<li class="status-msg" style="color:#f85149;">Failed to load files: ${err.message}</li>`;
+      }
+    }
+
+    async function loadFile(filePath) {
+      fileBar.textContent = filePath;
+      container.innerHTML = `<div class="status-msg">Loading content...</div>`;
+
+      const ext = filePath.split(".").pop().toLowerCase();
+      const rawUrl = `https://raw.githubusercontent.com/${GITHUB_OWNER}/${GITHUB_REPO}/${BRANCH}/${filePath}`;
+
+      // Render PDFs via Google Docs viewer to bypass iframe restrictions
+      if (ext === "pdf") {
+        const encodedUrl = encodeURIComponent(rawUrl);
+        container.innerHTML = `<iframe src="https://docs.google.com/viewer?url=${encodedUrl}&embedded=true"></iframe>`;
+        return;
+      }
+
+      // Render HTML inside a sandboxed iframe using srcdoc
+      if (ext === "html" || ext === "htm") {
+        try {
+          const res = await fetch(rawUrl);
+          if (!res.ok) throw new Error(`Fetch error: ${res.status}`);
+          const htmlText = await res.text();
+
+          const iframe = document.createElement("iframe");
+          iframe.sandbox = "allow-scripts allow-forms allow-same-origin";
+          iframe.srcdoc = htmlText;
+
+          container.innerHTML = "";
+          container.appendChild(iframe);
+        } catch (err) {
+          container.innerHTML = `<div class="status-msg" style="color:#f85149;">Unable to display HTML: ${err.message}</div>`;
+        }
+        return;
+      }
+
+      // Fetch text/code files directly (CORS is allowed for raw text fetches)
+      try {
+        const res = await fetch(rawUrl);
+        if (!res.ok) throw new Error(`Fetch error: ${res.status}`);
+        const text = await res.text();
+
+        const pre = document.createElement("pre");
+        const code = document.createElement("code");
+        code.textContent = text;
+        pre.appendChild(code);
+        container.innerHTML = "";
+        container.appendChild(pre);
+        hljs.highlightElement(code);
+      } catch (err) {
+        container.innerHTML = `<div class="status-msg" style="color:#f85149;">Unable to display file: ${err.message}</div>`;
+      }
+    }
+
+    loadTree();
+  </script>
+</body>
+</html>
