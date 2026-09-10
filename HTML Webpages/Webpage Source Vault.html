@@ -1,0 +1,1332 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>htmlvault</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=Inter:wght@400;500;600&display=swap');
+
+  :root{
+    --bg: #0b0d0a;
+    --bg-raised: #14170f;
+    --bg-inset: #080906;
+    --line: #2a2e1f;
+    --amber: #ffb000;
+    --amber-dim: #8a6200;
+    --amber-faint: #4a3a10;
+    --text: #e8dcc0;
+    --text-dim: #8a8570;
+    --danger: #ff5f4d;
+    --ok: #7dd07d;
+  }
+
+  * { box-sizing: border-box; }
+
+  html, body {
+    margin: 0; padding: 0;
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Inter', sans-serif;
+    height: 100%;
+  }
+
+  body {
+    background-image:
+      repeating-linear-gradient(0deg, rgba(255,176,0,0.015) 0px, rgba(255,176,0,0.015) 1px, transparent 1px, transparent 3px);
+  }
+
+  ::selection { background: var(--amber); color: #000; }
+
+  ::-webkit-scrollbar { width: 10px; }
+  ::-webkit-scrollbar-track { background: var(--bg-inset); }
+  ::-webkit-scrollbar-thumb { background: var(--amber-faint); border-radius: 0; }
+  ::-webkit-scrollbar-thumb:hover { background: var(--amber-dim); }
+
+  .shell {
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+  }
+
+  /* Top bar */
+  .topbar {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    padding: 14px 20px;
+    border-bottom: 1px solid var(--line);
+    background: var(--bg-raised);
+    flex-wrap: wrap;
+  }
+
+  .brand {
+    font-family: 'JetBrains Mono', monospace;
+    font-weight: 700;
+    font-size: 15px;
+    color: var(--amber);
+    letter-spacing: 0.5px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    white-space: nowrap;
+    cursor: pointer;
+    background: none;
+    border: none;
+    padding: 0;
+  }
+  .brand .cursor {
+    display: inline-block;
+    width: 8px; height: 16px;
+    background: var(--amber);
+    animation: blink 1.1s steps(1) infinite;
+  }
+  @keyframes blink { 50% { opacity: 0; } }
+
+  .search-wrap {
+    flex: 1;
+    min-width: 180px;
+    position: relative;
+  }
+  .search-wrap:before {
+    content: '/';
+    position: absolute;
+    left: 12px; top: 50%; transform: translateY(-50%);
+    color: var(--text-dim);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 13px;
+  }
+  #search {
+    width: 100%;
+    background: var(--bg-inset);
+    border: 1px solid var(--line);
+    color: var(--text);
+    padding: 9px 12px 9px 26px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 13px;
+    outline: none;
+  }
+  #search:focus { border-color: var(--amber-dim); }
+  #search::placeholder { color: var(--text-dim); }
+
+  .btn {
+    font-family: 'Inter', sans-serif;
+    font-weight: 600;
+    font-size: 13px;
+    background: transparent;
+    border: 1px solid var(--line);
+    color: var(--text);
+    padding: 9px 14px;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: border-color .15s, color .15s, background .15s;
+  }
+  .btn:hover { border-color: var(--amber-dim); color: var(--amber); }
+  .btn:focus-visible { outline: 2px solid var(--amber); outline-offset: 2px; }
+  .btn-solid {
+    background: var(--amber);
+    border-color: var(--amber);
+    color: #1a1300;
+  }
+  .btn-solid:hover { background: #ffc233; color: #1a1300; border-color: #ffc233; }
+  .btn-ghost-danger:hover { border-color: var(--danger); color: var(--danger); }
+  .btn[disabled] { opacity: .4; cursor: default; pointer-events: none; }
+
+  input[type=file] { display: none; }
+
+  /* Layout */
+  .main {
+    flex: 1;
+    display: flex;
+    min-height: 0;
+  }
+
+  .sidebar {
+    width: 210px;
+    flex-shrink: 0;
+    border-right: 1px solid var(--line);
+    background: var(--bg-raised);
+    padding: 16px 0;
+    overflow-y: auto;
+  }
+  .sidebar-label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    color: var(--text-dim);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    padding: 0 16px 8px;
+  }
+  .cat-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 8px 16px;
+    cursor: pointer;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 13px;
+    color: var(--text-dim);
+    border-left: 2px solid transparent;
+  }
+  .cat-item:hover { color: var(--text); background: rgba(255,176,0,0.04); }
+  .cat-item.active {
+    color: var(--amber);
+    border-left-color: var(--amber);
+    background: rgba(255,176,0,0.06);
+  }
+  .cat-count {
+    font-size: 11px;
+    color: var(--text-dim);
+    background: var(--bg-inset);
+    padding: 1px 6px;
+    border: 1px solid var(--line);
+  }
+  .cat-item.active .cat-count { color: var(--amber); border-color: var(--amber-faint); }
+
+  .content {
+    flex: 1;
+    overflow-y: auto;
+    padding: 20px;
+  }
+
+  .empty-state {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 60vh;
+    color: var(--text-dim);
+    font-family: 'JetBrains Mono', monospace;
+    padding: 60px 20px;
+    text-align: center;
+  }
+  .empty-state .glyph { font-size: 28px; color: var(--amber-faint); margin-bottom: 12px; }
+
+  /* ---- Landing grid / callout cards ---- */
+  .tool-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 18px;
+  }
+
+  .tool-card {
+    background: var(--bg-raised);
+    border: 1px solid var(--line);
+    display: flex;
+    flex-direction: column;
+    cursor: pointer;
+    transition: border-color .15s;
+  }
+  .tool-card:hover { border-color: var(--amber-dim); }
+
+  .tool-thumb {
+    height: 130px;
+    background: var(--bg-inset);
+    border-bottom: 1px solid var(--line);
+    overflow: hidden;
+    position: relative;
+  }
+  .tool-thumb iframe {
+    width: 400%;
+    height: 400%;
+    transform: scale(0.25);
+    transform-origin: top left;
+    border: none;
+    pointer-events: none;
+    background: #fff;
+  }
+  .tool-thumb .thumb-fallback {
+    position: absolute; inset: 0;
+    display: flex; align-items: center; justify-content: center;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    color: var(--text-dim);
+  }
+
+  .tool-body { padding: 14px 16px; flex: 1; display: flex; flex-direction: column; }
+  .tool-top { display: flex; align-items: baseline; gap: 8px; flex-wrap: wrap; margin-bottom: 6px; }
+  .tool-name { font-weight: 600; font-size: 15px; color: var(--text); }
+  .tool-tag {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10.5px;
+    color: var(--amber);
+    background: rgba(255,176,0,0.08);
+    border: 1px solid var(--amber-faint);
+    padding: 1px 7px;
+    text-transform: lowercase;
+  }
+  .tag-badges { display: flex; gap: 5px; flex-wrap: wrap; }
+  .badge-tag {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10.5px;
+    color: var(--text-dim);
+    background: var(--bg-inset);
+    border: 1px solid var(--line);
+    padding: 1px 7px;
+    text-transform: lowercase;
+  }
+  .badge-tag:before { content: '#'; color: var(--amber-dim); margin-right: 1px; }
+
+  .tool-desc { font-size: 12.5px; color: var(--text-dim); margin: 4px 0 10px; flex: 1; line-height: 1.5; }
+
+  .tool-meta-row {
+    display: flex; justify-content: space-between; align-items: center;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    color: var(--text-dim);
+    padding-top: 10px;
+    border-top: 1px solid var(--line);
+  }
+  .version-pill {
+    color: var(--amber);
+    background: rgba(255,176,0,0.08);
+    border: 1px solid var(--amber-faint);
+    padding: 1px 7px;
+  }
+
+  .tool-actions {
+    display: flex;
+    gap: 6px;
+    padding: 10px 16px 14px;
+  }
+
+  .icon-btn {
+    background: transparent;
+    border: 1px solid var(--line);
+    color: var(--text-dim);
+    width: 30px; height: 30px;
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer;
+    font-size: 13px;
+    flex-shrink: 0;
+  }
+  .icon-btn:hover { border-color: var(--amber-dim); color: var(--amber); }
+  .icon-btn.danger:hover { border-color: var(--danger); color: var(--danger); }
+  .icon-btn.copied { border-color: var(--amber); color: var(--amber); background: rgba(255,176,0,0.1); }
+  .icon-btn.solid { border-color: var(--amber); color: var(--amber); }
+
+  /* ---- Detail / repository page ---- */
+  .breadcrumb {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12.5px;
+    color: var(--text-dim);
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    padding: 0 0 16px;
+    display: flex; align-items: center; gap: 6px;
+  }
+  .breadcrumb:hover { color: var(--amber); }
+
+  .detail-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 16px;
+    flex-wrap: wrap;
+    margin-bottom: 18px;
+  }
+  .detail-title { font-size: 22px; font-weight: 600; color: var(--text); margin: 0 0 6px; }
+  .detail-desc { font-size: 13px; color: var(--text-dim); max-width: 640px; line-height: 1.6; margin: 8px 0 0; }
+  .detail-meta { display: flex; gap: 6px; flex-wrap: wrap; align-items: center; }
+  .detail-actions { display: flex; gap: 8px; flex-shrink: 0; }
+
+  .highlight-panel {
+    background: var(--bg-raised);
+    border: 1px solid var(--amber-faint);
+    margin-bottom: 22px;
+    display: grid;
+    grid-template-columns: 260px 1fr;
+  }
+  .highlight-thumb {
+    background: var(--bg-inset);
+    border-right: 1px solid var(--line);
+    overflow: hidden;
+    position: relative;
+    min-height: 220px;
+  }
+  .highlight-thumb iframe {
+    width: 320%;
+    height: 320%;
+    transform: scale(0.3125);
+    transform-origin: top left;
+    border: none;
+    pointer-events: none;
+    background: #fff;
+  }
+  .highlight-info { padding: 16px 18px; display: flex; flex-direction: column; }
+  .highlight-label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    color: var(--amber);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-bottom: 8px;
+  }
+  .highlight-ver { font-size: 17px; font-weight: 600; color: var(--text); margin-bottom: 4px; }
+  .highlight-date { font-size: 11.5px; color: var(--text-dim); font-family: 'JetBrains Mono', monospace; margin-bottom: 10px; }
+  .highlight-notes { font-size: 12.5px; color: var(--text-dim); line-height: 1.6; margin-bottom: 14px; flex: 1; }
+  .highlight-btns { display: flex; gap: 8px; flex-wrap: wrap; }
+
+  .section-label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    color: var(--text-dim);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin: 24px 0 10px;
+  }
+
+  .version-list { border-top: 1px solid var(--line); }
+  .version-row {
+    display: grid;
+    grid-template-columns: 44px 1fr auto;
+    border-bottom: 1px solid var(--line);
+    align-items: stretch;
+  }
+  .version-row:hover { background: rgba(255,176,0,0.03); }
+  .version-row.current { background: rgba(255,176,0,0.05); }
+  .version-lineno {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    color: var(--amber-dim);
+    text-align: right;
+    padding: 14px 10px 14px 0;
+    border-right: 1px solid var(--line);
+  }
+  .version-body { padding: 12px 16px; min-width: 0; }
+  .version-top { display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap; margin-bottom: 4px; }
+  .version-name { font-weight: 600; font-size: 14px; color: var(--text); }
+  .version-current-badge {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    color: #1a1300;
+    background: var(--amber);
+    padding: 1px 6px;
+  }
+  .version-date { font-family: 'JetBrains Mono', monospace; font-size: 11.5px; color: var(--text-dim); }
+  .version-notes { font-size: 12.5px; color: var(--text-dim); margin-top: 4px; }
+  .version-actions {
+    display: flex;
+    align-items: flex-start;
+    gap: 6px;
+    padding: 12px 16px 12px 8px;
+    flex-wrap: wrap;
+  }
+
+  .code-peek {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11.5px;
+    color: var(--text-dim);
+    background: var(--bg-inset);
+    border: 1px solid var(--line);
+    padding: 8px 10px;
+    margin-top: 8px;
+    max-height: 140px;
+    overflow-y: auto;
+    white-space: pre-wrap;
+    word-break: break-all;
+    display: none;
+  }
+  .code-peek.open { display: block; }
+
+  /* Modal */
+  .modal-overlay {
+    position: fixed; inset: 0;
+    background: rgba(0,0,0,0.7);
+    display: none;
+    align-items: center; justify-content: center;
+    z-index: 50;
+    padding: 20px;
+  }
+  .modal-overlay.open { display: flex; }
+  .modal {
+    background: var(--bg-raised);
+    border: 1px solid var(--amber-faint);
+    width: 100%; max-width: 520px;
+    max-height: 90vh;
+    overflow-y: auto;
+  }
+  .modal.resizable {
+    resize: both;
+    overflow: auto;
+    min-width: 340px;
+    min-height: 280px;
+    position: relative;
+    flex-shrink: 0;
+  }
+  .resize-hint {
+    position: absolute;
+    bottom: 4px; right: 5px;
+    font-size: 10px;
+    color: var(--text-dim);
+    pointer-events: none;
+    letter-spacing: 1px;
+    opacity: 0.6;
+  }
+  .modal-head {
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 16px 18px;
+    border-bottom: 1px solid var(--line);
+  }
+  .modal-head h2 {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 14px;
+    color: var(--amber);
+    margin: 0;
+    font-weight: 600;
+  }
+  .modal-close {
+    background: none; border: none; color: var(--text-dim);
+    cursor: pointer; font-size: 18px; line-height: 1;
+  }
+  .modal-close:hover { color: var(--amber); }
+  .modal-body { padding: 18px; display: flex; flex-direction: column; gap: 14px; }
+  .field label {
+    display: block;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    color: var(--text-dim);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 6px;
+  }
+  .field input, .field textarea, .field select {
+    width: 100%;
+    background: var(--bg-inset);
+    border: 1px solid var(--line);
+    color: var(--text);
+    padding: 9px 10px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 13px;
+    outline: none;
+    resize: vertical;
+  }
+  .field textarea { min-height: 70px; line-height: 1.5; }
+  .field textarea.code-field { min-height: 160px; }
+  .field input:focus, .field textarea:focus, .field select:focus { border-color: var(--amber-dim); }
+  .field-hint { font-size: 11.5px; color: var(--text-dim); margin-top: 5px; }
+  .modal-foot {
+    display: flex; justify-content: flex-end; gap: 8px;
+    padding: 14px 18px; border-top: 1px solid var(--line);
+  }
+
+  .toast {
+    position: fixed;
+    bottom: 20px; left: 50%;
+    transform: translateX(-50%) translateY(20px);
+    background: var(--amber);
+    color: #1a1300;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 13px;
+    font-weight: 600;
+    padding: 10px 18px;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity .2s, transform .2s;
+    z-index: 100;
+  }
+  .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+  @media (max-width: 640px) {
+    .sidebar { display: none; }
+    .highlight-panel { grid-template-columns: 1fr; }
+    .highlight-thumb { min-height: 160px; }
+    .version-row { grid-template-columns: 30px 1fr auto; }
+    .version-actions { flex-direction: column; }
+  }
+</style>
+</head>
+<script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
+<body>
+<div class="shell">
+  <div class="topbar">
+    <button class="brand" id="brandHome"><span class="cursor"></span>htmlvault</button>
+    <div class="search-wrap">
+      <input id="search" type="text" placeholder="filter tools...">
+    </div>
+    <button class="btn" id="uploadBtn">upload</button>
+    <input type="file" id="fileInput" accept=".html,.htm,.json">
+    <button class="btn" id="exportBtn">export</button>
+    <button class="btn btn-solid" id="addBtn">+ add tool</button>
+  </div>
+
+  <div class="main">
+    <div class="sidebar" id="sidebarWrap">
+      <div class="sidebar-label">categories</div>
+      <div id="catList"></div>
+    </div>
+    <div class="content" id="content"></div>
+  </div>
+</div>
+
+<!-- Add / Edit tool modal -->
+<div class="modal-overlay" id="modalOverlay">
+  <div class="modal resizable">
+    <div class="modal-head">
+      <h2 id="modalTitle">add tool</h2>
+      <button class="modal-close" id="modalClose">&times;</button>
+    </div>
+    <div class="modal-body">
+      <div class="field">
+        <label>name</label>
+        <input id="fName" type="text" placeholder="e.g. Markdown Live Preview">
+      </div>
+      <div class="field">
+        <label>description</label>
+        <textarea id="fDesc" placeholder="what this tool does..." style="min-height:50px;"></textarea>
+      </div>
+      <div class="field">
+        <label>category</label>
+        <input id="fCategory" type="text" placeholder="e.g. converters, editors, misc" list="catOptions">
+        <datalist id="catOptions"></datalist>
+      </div>
+      <div class="field">
+        <label>tags (comma separated)</label>
+        <input id="fTags" type="text" placeholder="e.g. markdown, offline, bookmarklet">
+      </div>
+      <div class="field" id="codeFieldWrap">
+        <label>html code (v1)</label>
+        <textarea id="fCode" class="code-field" placeholder="paste the full, self-contained HTML..."></textarea>
+        <div class="field-hint">this becomes the tool's first version and is set as the highlighted version.</div>
+      </div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn" id="cancelBtn">cancel</button>
+      <button class="btn btn-solid" id="saveBtn">save</button>
+    </div>
+    <span class="resize-hint">&#8600;</span>
+  </div>
+</div>
+
+<!-- Add version modal -->
+<div class="modal-overlay" id="verOverlay">
+  <div class="modal resizable">
+    <div class="modal-head">
+      <h2>add version</h2>
+      <button class="modal-close" id="verModalClose">&times;</button>
+    </div>
+    <div class="modal-body">
+      <div class="field">
+        <label>version label</label>
+        <input id="fVerLabel" type="text" placeholder="e.g. v2, 2026-09-10, redesign">
+      </div>
+      <div class="field">
+        <label>notes (optional)</label>
+        <textarea id="fVerNotes" placeholder="what changed in this version..." style="min-height:50px;"></textarea>
+      </div>
+      <div class="field">
+        <label>html code</label>
+        <textarea id="fVerCode" class="code-field" placeholder="paste the full, self-contained HTML..."></textarea>
+      </div>
+      <div class="field" style="flex-direction:row; align-items:center; gap:8px; display:flex;">
+        <input id="fVerHighlight" type="checkbox" style="width:auto;" checked>
+        <label style="margin:0; text-transform:none; font-size:12.5px;" for="fVerHighlight">set as highlighted version</label>
+      </div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn" id="verCancelBtn">cancel</button>
+      <button class="btn btn-solid" id="verSaveBtn">save version</button>
+    </div>
+    <span class="resize-hint">&#8600;</span>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+function exportAsPng() {
+  const target = document.querySelector('.container');
+  html2canvas(target, { backgroundColor: getComputedStyle(document.documentElement).getPropertyValue('--bg') }).then(canvas => {
+    const link = document.createElement('a');
+    link.download = 'Terminal-Session-Formatter.png';
+    link.href = canvas.toDataURL('image/png');
+    link.click();
+  });
+}
+
+const STORAGE_KEY = 'html-tools';
+let tools = [];
+let activeCategory = 'all';
+let editingId = null;       // tool being edited (meta only)
+let currentDetailId = null; // tool id currently shown on detail page
+
+const contentEl = document.getElementById('content');
+const catListEl = document.getElementById('catList');
+const sidebarWrap = document.getElementById('sidebarWrap');
+const searchEl = document.getElementById('search');
+const toastEl = document.getElementById('toast');
+
+function uid(prefix){ return (prefix || 't') + '_' + Date.now() + '_' + Math.random().toString(36).slice(2,8); }
+
+function showToast(msg){
+  toastEl.textContent = msg;
+  toastEl.classList.add('show');
+  clearTimeout(showToast._t);
+  showToast._t = setTimeout(()=> toastEl.classList.remove('show'), 1500);
+}
+
+function escapeHtml(str){
+  const d = document.createElement('div');
+  d.textContent = str || '';
+  return d.innerHTML;
+}
+function escapeAttr(str){
+  return (str||'').replace(/"/g,'&quot;');
+}
+
+// ---------- Persistence ----------
+async function loadTools(){
+  try {
+    const res = await window.storage.get(STORAGE_KEY, false);
+    tools = res ? JSON.parse(res.value) : seedTools();
+  } catch(e){
+    tools = seedTools();
+  }
+  route();
+}
+
+async function persist(){
+  try {
+    const result = await window.storage.set(STORAGE_KEY, JSON.stringify(tools), false);
+    if (!result) showToast('save failed — storage error');
+  } catch(e){
+    showToast('save failed — storage error');
+  }
+}
+
+function seedTools(){
+  const now = Date.now();
+  const placeholder = (title) => `<!-- ${title}: original source not migrated yet.\n     Use "add version" on this tool's page to paste the real HTML. -->`;
+  return [
+    {
+      id: uid(),
+      name: 'Terminal Code Snippets',
+      desc: 'Interactive dashboard for terminal and a-Shell commands.',
+      category: 'dashboards',
+      tags: ['terminal', 'shell'],
+      created: now,
+      currentVersionId: 'v1',
+      versions: [
+        { id: 'v1', label: 'v1', code: placeholder('Terminal Code Snippets'), notes: 'imported from the old master index', date: new Date('2026-04-28').getTime() }
+      ]
+    },
+    {
+      id: uid(),
+      name: 'Responsive HTML Editor',
+      desc: 'Side-by-side live editing environment.',
+      category: 'editors',
+      tags: ['editor', 'responsive'],
+      created: now,
+      currentVersionId: 'v1',
+      versions: [
+        { id: 'v1', label: 'v1', code: placeholder('Responsive HTML Editor'), notes: 'imported from the old master index', date: new Date('2026-04-28').getTime() }
+      ]
+    },
+    {
+      id: uid(),
+      name: 'Markdown Live Preview',
+      desc: "Responsive Markdown editor with a live preview. Side-by-side layout (stacks on mobile), marked.js for Markdown-to-HTML conversion, plus buttons to copy Markdown, copy rendered HTML, or export the raw Markdown as a .md file.",
+      category: 'converters',
+      tags: ['markdown', 'preview'],
+      created: now,
+      currentVersionId: 'v1',
+      versions: [
+        { id: 'v1', label: 'v1', code: placeholder('Markdown Live Preview'), notes: 'imported from the old master index', date: new Date('2026-04-29').getTime() }
+      ]
+    }
+  ];
+}
+
+// ---------- Helpers ----------
+function getTool(id){ return tools.find(t => t.id === id); }
+function getCurrentVersion(tool){
+  return (tool.versions || []).find(v => v.id === tool.currentVersionId) || tool.versions[tool.versions.length - 1];
+}
+function sortedVersions(tool){
+  return [...(tool.versions || [])].sort((a,b) => b.date - a.date);
+}
+
+function getCategories(){
+  const cats = new Set(tools.map(t => t.category || 'uncategorized'));
+  return Array.from(cats).sort();
+}
+
+function renderCategories(){
+  const cats = getCategories();
+  const counts = {};
+  tools.forEach(t => {
+    const k = t.category || 'uncategorized';
+    counts[k] = (counts[k]||0) + 1;
+  });
+  let html = `<div class="cat-item ${activeCategory==='all'?'active':''}" data-cat="all">
+    <span>all</span><span class="cat-count">${tools.length}</span></div>`;
+  cats.forEach(cat => {
+    html += `<div class="cat-item ${activeCategory===cat?'active':''}" data-cat="${escapeAttr(cat)}">
+      <span>${escapeHtml(cat)}</span><span class="cat-count">${counts[cat]}</span></div>`;
+  });
+  catListEl.innerHTML = html;
+  catListEl.querySelectorAll('.cat-item').forEach(el => {
+    el.addEventListener('click', () => {
+      activeCategory = el.dataset.cat;
+      renderIndex();
+    });
+  });
+
+  const datalist = document.getElementById('catOptions');
+  datalist.innerHTML = cats.map(c => `<option value="${escapeAttr(c)}">`).join('');
+}
+
+function filteredTools(){
+  const q = searchEl.value.trim().toLowerCase();
+  return tools.filter(t => {
+    if (activeCategory !== 'all' && (t.category || 'uncategorized') !== activeCategory) return false;
+    if (!q) return true;
+    return (t.name||'').toLowerCase().includes(q) ||
+           (t.desc||'').toLowerCase().includes(q) ||
+           (t.category||'').toLowerCase().includes(q) ||
+           (t.tags||[]).some(tag => tag.toLowerCase().includes(q));
+  });
+}
+
+function fmtDate(ts){
+  if (!ts) return '';
+  const d = new Date(ts);
+  return d.toISOString().split('T')[0];
+}
+
+// ---------- Router ----------
+function route(){
+  const hash = location.hash || '';
+  const m = hash.match(/^#\/tool\/(.+)$/);
+  if (m && getTool(m[1])){
+    currentDetailId = m[1];
+    renderDetail(currentDetailId);
+  } else {
+    currentDetailId = null;
+    renderIndex();
+  }
+}
+window.addEventListener('hashchange', route);
+document.getElementById('brandHome').addEventListener('click', () => { location.hash = ''; });
+
+function openTool(id){
+  location.hash = '#/tool/' + id;
+}
+
+// ---------- Landing / index render ----------
+function renderIndex(){
+  sidebarWrap.style.display = '';
+  renderCategories();
+  const list = filteredTools();
+
+  if (list.length === 0){
+    contentEl.innerHTML = `<div class="empty-state">
+      <div class="glyph">&lt;/&gt;</div>
+      <div>${tools.length === 0 ? 'no tools saved yet — add one to get started' : 'nothing matches that filter'}</div>
+    </div>`;
+    return;
+  }
+
+  let html = '<div class="tool-grid">';
+  list.forEach(t => {
+    const cur = getCurrentVersion(t);
+    const code = cur ? cur.code || '' : '';
+    const tags = t.tags || [];
+    html += `<div class="tool-card" data-id="${t.id}">
+      <div class="tool-thumb" data-thumb>
+        ${code.trim() ? `<iframe sandbox="allow-scripts" srcdoc="${escapeAttr(code)}" tabindex="-1"></iframe>` : `<div class="thumb-fallback">no preview yet</div>`}
+      </div>
+      <div class="tool-body">
+        <div class="tool-top">
+          <span class="tool-name">${escapeHtml(t.name || 'untitled')}</span>
+          <span class="tool-tag">${escapeHtml(t.category || 'uncategorized')}</span>
+        </div>
+        ${tags.length ? `<div class="tag-badges">${tags.map(tag => `<span class="badge-tag">${escapeHtml(tag)}</span>`).join('')}</div>` : ''}
+        <p class="tool-desc">${escapeHtml(t.desc || '')}</p>
+        <div class="tool-meta-row">
+          <span>${fmtDate(cur ? cur.date : t.created)}</span>
+          <span class="version-pill">${(t.versions||[]).length} version${(t.versions||[]).length===1?'':'s'}</span>
+        </div>
+      </div>
+      <div class="tool-actions">
+        <button class="icon-btn open-repo-btn" title="open repository" data-id="${t.id}">&#8594;</button>
+        <button class="icon-btn open-cur-btn" title="open highlighted version" data-id="${t.id}">&#9658;</button>
+        <button class="icon-btn copy-cur-btn" title="copy highlighted version" data-id="${t.id}">&#10697;</button>
+        <button class="icon-btn edit-btn" title="edit tool" data-id="${t.id}">&#9998;</button>
+        <button class="icon-btn danger delete-btn" title="delete tool" data-id="${t.id}">&#10005;</button>
+      </div>
+    </div>`;
+  });
+  html += '</div>';
+  contentEl.innerHTML = html;
+  attachIndexEvents();
+}
+
+function attachIndexEvents(){
+  contentEl.querySelectorAll('.tool-card').forEach(card => {
+    card.addEventListener('click', (e) => {
+      if (e.target.closest('.tool-actions')) return; // let action buttons handle themselves
+      openTool(card.dataset.id);
+    });
+  });
+  contentEl.querySelectorAll('.open-repo-btn').forEach(btn => {
+    btn.addEventListener('click', (e) => { e.stopPropagation(); openTool(btn.dataset.id); });
+  });
+  contentEl.querySelectorAll('.open-cur-btn').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const t = getTool(btn.dataset.id);
+      if (t) openInNewTab(getCurrentVersion(t));
+    });
+  });
+  contentEl.querySelectorAll('.copy-cur-btn').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const t = getTool(btn.dataset.id);
+      if (t) copyCode(getCurrentVersion(t).code, btn);
+    });
+  });
+  contentEl.querySelectorAll('.edit-btn').forEach(btn => {
+    btn.addEventListener('click', (e) => { e.stopPropagation(); openEdit(btn.dataset.id); });
+  });
+  contentEl.querySelectorAll('.delete-btn').forEach(btn => {
+    btn.addEventListener('click', (e) => { e.stopPropagation(); deleteTool(btn.dataset.id); });
+  });
+}
+
+// ---------- Detail / repository page render ----------
+function renderDetail(id){
+  sidebarWrap.style.display = 'none';
+  const t = getTool(id);
+  if (!t){ location.hash = ''; return; }
+
+  const cur = getCurrentVersion(t);
+  const versions = sortedVersions(t);
+  const tags = t.tags || [];
+
+  let html = `<button class="breadcrumb" id="backBtn">&#8592; back to index</button>
+    <div class="detail-head">
+      <div>
+        <h1 class="detail-title">${escapeHtml(t.name || 'untitled')}</h1>
+        <div class="detail-meta">
+          <span class="tool-tag">${escapeHtml(t.category || 'uncategorized')}</span>
+          ${tags.length ? `<span class="tag-badges">${tags.map(tag => `<span class="badge-tag">${escapeHtml(tag)}</span>`).join('')}</span>` : ''}
+        </div>
+        <p class="detail-desc">${escapeHtml(t.desc || '')}</p>
+      </div>
+      <div class="detail-actions">
+        <button class="btn" id="editToolBtn">edit tool</button>
+        <button class="btn btn-ghost-danger" id="deleteToolBtn">delete tool</button>
+      </div>
+    </div>`;
+
+  if (cur){
+    html += `<div class="highlight-panel">
+      <div class="highlight-thumb">
+        ${cur.code.trim() ? `<iframe sandbox="allow-scripts" srcdoc="${escapeAttr(cur.code)}" tabindex="-1"></iframe>` : ''}
+      </div>
+      <div class="highlight-info">
+        <div class="highlight-label">highlighted version</div>
+        <div class="highlight-ver">${escapeHtml(cur.label)}</div>
+        <div class="highlight-date">${fmtDate(cur.date)}</div>
+        <div class="highlight-notes">${escapeHtml(cur.notes || 'no notes for this version.')}</div>
+        <div class="highlight-btns">
+          <button class="btn btn-solid" id="openCurBtn">open in new tab</button>
+          <button class="btn" id="copyCurBtn">copy code</button>
+          <button class="btn" id="downloadCurBtn">download .html</button>
+        </div>
+      </div>
+    </div>`;
+  }
+
+  html += `<div class="section-label">version history — ${versions.length} version${versions.length===1?'':'s'}</div>
+    <div style="margin-bottom:14px;"><button class="btn btn-solid" id="addVersionBtn">+ add version</button></div>
+    <div class="version-list">`;
+
+  versions.forEach((v, i) => {
+    const isCurrent = v.id === t.currentVersionId;
+    html += `<div class="version-row ${isCurrent?'current':''}" data-vid="${v.id}">
+      <div class="version-lineno">${String(versions.length - i).padStart(2,'0')}</div>
+      <div class="version-body">
+        <div class="version-top">
+          <span class="version-name">${escapeHtml(v.label)}</span>
+          ${isCurrent ? '<span class="version-current-badge">highlighted</span>' : ''}
+          <span class="version-date">${fmtDate(v.date)}</span>
+        </div>
+        ${v.notes ? `<div class="version-notes">${escapeHtml(v.notes)}</div>` : ''}
+        <div class="code-peek" data-peek>${escapeHtml((v.code||'').slice(0, 2000))}</div>
+      </div>
+      <div class="version-actions">
+        ${!isCurrent ? `<button class="icon-btn solid highlight-ver-btn" title="set as highlighted" data-vid="${v.id}">&#9733;</button>` : ''}
+        <button class="icon-btn peek-btn" title="peek code" data-vid="${v.id}">&#128065;</button>
+        <button class="icon-btn open-ver-btn" title="open in new tab" data-vid="${v.id}">&#9658;</button>
+        <button class="icon-btn copy-ver-btn" title="copy code" data-vid="${v.id}">&#10697;</button>
+        <button class="icon-btn danger delete-ver-btn" title="delete version" data-vid="${v.id}" ${versions.length <= 1 ? 'disabled' : ''}>&#10005;</button>
+      </div>
+    </div>`;
+  });
+
+  html += `</div>`;
+  contentEl.innerHTML = html;
+  attachDetailEvents(t);
+}
+
+function attachDetailEvents(t){
+  document.getElementById('backBtn').addEventListener('click', () => { location.hash = ''; });
+  document.getElementById('editToolBtn').addEventListener('click', () => openEdit(t.id));
+  document.getElementById('deleteToolBtn').addEventListener('click', () => deleteTool(t.id));
+
+  const cur = getCurrentVersion(t);
+  const openCurBtn = document.getElementById('openCurBtn');
+  if (openCurBtn) openCurBtn.addEventListener('click', () => openInNewTab(cur));
+  const copyCurBtn = document.getElementById('copyCurBtn');
+  if (copyCurBtn) copyCurBtn.addEventListener('click', () => copyCode(cur.code, copyCurBtn));
+  const downloadCurBtn = document.getElementById('downloadCurBtn');
+  if (downloadCurBtn) downloadCurBtn.addEventListener('click', () => downloadCode(t, cur));
+
+  document.getElementById('addVersionBtn').addEventListener('click', () => openAddVersion(t.id));
+
+  contentEl.querySelectorAll('.highlight-ver-btn').forEach(btn => {
+    btn.addEventListener('click', async () => {
+      t.currentVersionId = btn.dataset.vid;
+      await persist();
+      showToast('highlighted version updated');
+      renderDetail(t.id);
+    });
+  });
+  contentEl.querySelectorAll('.peek-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const row = btn.closest('.version-row');
+      row.querySelector('[data-peek]').classList.toggle('open');
+    });
+  });
+  contentEl.querySelectorAll('.open-ver-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const v = t.versions.find(x => x.id === btn.dataset.vid);
+      if (v) openInNewTab(v);
+    });
+  });
+  contentEl.querySelectorAll('.copy-ver-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const v = t.versions.find(x => x.id === btn.dataset.vid);
+      if (v) copyCode(v.code, btn);
+    });
+  });
+  contentEl.querySelectorAll('.delete-ver-btn').forEach(btn => {
+    btn.addEventListener('click', () => deleteVersion(t.id, btn.dataset.vid));
+  });
+}
+
+// ---------- Actions: open / copy / download ----------
+function openInNewTab(version){
+  if (!version || !version.code || !version.code.trim()){
+    showToast('nothing to open yet');
+    return;
+  }
+  try {
+    const blob = new Blob([version.code], { type: 'text/html' });
+    const url = URL.createObjectURL(blob);
+    const w = window.open(url, '_blank');
+    if (!w) showToast('popup blocked — allow popups for this page');
+    setTimeout(() => URL.revokeObjectURL(url), 15000);
+  } catch(e){
+    showToast('could not open — try copy instead');
+  }
+}
+
+async function copyCode(text, el){
+  if (!text){ showToast('nothing to copy'); return; }
+  try {
+    await navigator.clipboard.writeText(text);
+  } catch(e){
+    const ta = document.createElement('textarea');
+    ta.value = text;
+    document.body.appendChild(ta);
+    ta.select();
+    document.execCommand('copy');
+    document.body.removeChild(ta);
+  }
+  showToast('copied to clipboard');
+  if (el){
+    el.classList.add('copied');
+    setTimeout(()=> el.classList.remove('copied'), 900);
+  }
+}
+
+function downloadCode(tool, version){
+  if (!version || !version.code){ showToast('nothing to download'); return; }
+  const safe = (tool.name || 'tool').replace(/[^a-z0-9]/gi, '_').toLowerCase();
+  const blob = new Blob([version.code], { type: 'text/html' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `${safe}_${version.label}.html`;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  setTimeout(() => URL.revokeObjectURL(url), 10000);
+  showToast('downloaded');
+}
+
+// ---------- Delete ----------
+function deleteTool(id){
+  const t = getTool(id);
+  if (!t) return;
+  if (!confirm(`Delete "${t.name}" and all ${t.versions.length} version(s)?`)) return;
+  tools = tools.filter(x => x.id !== id);
+  persist();
+  if (currentDetailId === id) location.hash = '';
+  else renderIndex();
+  showToast('deleted');
+}
+
+function deleteVersion(toolId, vid){
+  const t = getTool(toolId);
+  if (!t || t.versions.length <= 1) return;
+  if (!confirm('Delete this version?')) return;
+  t.versions = t.versions.filter(v => v.id !== vid);
+  if (t.currentVersionId === vid){
+    t.currentVersionId = sortedVersions(t)[0].id;
+  }
+  persist();
+  renderDetail(toolId);
+  showToast('version deleted');
+}
+
+// ---------- Add / edit tool modal ----------
+const overlay = document.getElementById('modalOverlay');
+const modalTitle = document.getElementById('modalTitle');
+const codeFieldWrap = document.getElementById('codeFieldWrap');
+const fName = document.getElementById('fName');
+const fDesc = document.getElementById('fDesc');
+const fCategory = document.getElementById('fCategory');
+const fTags = document.getElementById('fTags');
+const fCode = document.getElementById('fCode');
+
+function parseTags(str){
+  return (str || '').split(',').map(t => t.trim().toLowerCase()).filter(Boolean);
+}
+
+function openAdd(){
+  editingId = null;
+  modalTitle.textContent = 'add tool';
+  codeFieldWrap.style.display = '';
+  fName.value = ''; fDesc.value = ''; fCategory.value = ''; fTags.value = ''; fCode.value = '';
+  overlay.classList.add('open');
+  renderCategoryOptions();
+  setTimeout(()=> fName.focus(), 50);
+}
+
+function openEdit(id){
+  const t = getTool(id);
+  if (!t) return;
+  editingId = id;
+  modalTitle.textContent = 'edit tool';
+  codeFieldWrap.style.display = 'none';
+  fName.value = t.name || '';
+  fDesc.value = t.desc || '';
+  fCategory.value = t.category || '';
+  fTags.value = (t.tags || []).join(', ');
+  overlay.classList.add('open');
+  renderCategoryOptions();
+  setTimeout(()=> fName.focus(), 50);
+}
+
+function renderCategoryOptions(){
+  const datalist = document.getElementById('catOptions');
+  datalist.innerHTML = getCategories().map(c => `<option value="${escapeAttr(c)}">`).join('');
+}
+
+function closeModal(){ overlay.classList.remove('open'); }
+
+document.getElementById('addBtn').addEventListener('click', openAdd);
+document.getElementById('modalClose').addEventListener('click', closeModal);
+document.getElementById('cancelBtn').addEventListener('click', closeModal);
+overlay.addEventListener('click', (e) => { if (e.target === overlay) closeModal(); });
+
+document.getElementById('saveBtn').addEventListener('click', async () => {
+  const name = fName.value.trim();
+  const tags = parseTags(fTags.value);
+
+  if (editingId){
+    const t = getTool(editingId);
+    t.name = name || 'untitled';
+    t.desc = fDesc.value.trim();
+    t.category = fCategory.value.trim() || 'uncategorized';
+    t.tags = tags;
+    await persist();
+    closeModal();
+    showToast('saved');
+    if (currentDetailId === editingId) renderDetail(editingId); else renderIndex();
+    return;
+  }
+
+  const code = fCode.value.trim();
+  if (!code){
+    showToast('html code is required for a new tool');
+    return;
+  }
+  const now = Date.now();
+  const vid = uid('v');
+  tools.unshift({
+    id: uid('t'),
+    name: name || 'untitled',
+    desc: fDesc.value.trim(),
+    category: fCategory.value.trim() || 'uncategorized',
+    tags,
+    created: now,
+    currentVersionId: vid,
+    versions: [{ id: vid, label: 'v1', code, notes: '', date: now }]
+  });
+  await persist();
+  closeModal();
+  renderIndex();
+  showToast('tool added');
+});
+
+// ---------- Add version modal ----------
+const verOverlay = document.getElementById('verOverlay');
+const fVerLabel = document.getElementById('fVerLabel');
+const fVerNotes = document.getElementById('fVerNotes');
+const fVerCode = document.getElementById('fVerCode');
+const fVerHighlight = document.getElementById('fVerHighlight');
+let versioningToolId = null;
+
+function openAddVersion(toolId){
+  versioningToolId = toolId;
+  const t = getTool(toolId);
+  const nextNum = (t.versions || []).length + 1;
+  fVerLabel.value = 'v' + nextNum;
+  fVerNotes.value = '';
+  fVerCode.value = '';
+  fVerHighlight.checked = true;
+  verOverlay.classList.add('open');
+  setTimeout(()=> fVerLabel.focus(), 50);
+}
+function closeVerModal(){ verOverlay.classList.remove('open'); versioningToolId = null; }
+
+document.getElementById('verModalClose').addEventListener('click', closeVerModal);
+document.getElementById('verCancelBtn').addEventListener('click', closeVerModal);
+verOverlay.addEventListener('click', (e) => { if (e.target === verOverlay) closeVerModal(); });
+
+document.getElementById('verSaveBtn').addEventListener('click', async () => {
+  const t = getTool(versioningToolId);
+  if (!t) return;
+  const code = fVerCode.value.trim();
+  if (!code){ showToast('html code is required'); return; }
+  const now = Date.now();
+  const vid = uid('v');
+  t.versions.push({
+    id: vid,
+    label: fVerLabel.value.trim() || ('v' + (t.versions.length + 1)),
+    code,
+    notes: fVerNotes.value.trim(),
+    date: now
+  });
+  if (fVerHighlight.checked) t.currentVersionId = vid;
+  await persist();
+  closeVerModal();
+  renderDetail(t.id);
+  showToast('version added');
+});
+
+// ---------- Search ----------
+searchEl.addEventListener('input', () => { if (!currentDetailId) renderIndex(); });
+
+// ---------- Import ----------
+document.getElementById('uploadBtn').addEventListener('click', () => {
+  document.getElementById('fileInput').click();
+});
+
+document.getElementById('fileInput').addEventListener('change', async (e) => {
+  const file = e.target.files[0];
+  if (!file) return;
+  const text = await file.text();
+
+  if (file.name.endsWith('.json')){
+    try {
+      const data = JSON.parse(text);
+      const arr = Array.isArray(data) ? data : (data.tools || []);
+      let imported = 0;
+      arr.forEach(item => {
+        if (item && item.name && Array.isArray(item.versions) && item.versions.length){
+          tools.unshift({
+            id: uid('t'),
+            name: item.name,
+            desc: item.desc || '',
+            category: item.category || 'imported',
+            tags: item.tags || [],
+            created: item.created || Date.now(),
+            currentVersionId: item.currentVersionId || item.versions[0].id,
+            versions: item.versions.map(v => ({
+              id: v.id || uid('v'),
+              label: v.label || 'v1',
+              code: v.code || '',
+              notes: v.notes || '',
+              date: v.date || Date.now()
+            }))
+          });
+          imported++;
+        }
+      });
+      await persist();
+      renderIndex();
+      showToast(`imported ${imported} tool${imported===1?'':'s'}`);
+    } catch(err){
+      showToast('could not parse JSON file');
+    }
+  } else {
+    // .html / .htm — becomes a new tool, first version
+    const now = Date.now();
+    const vid = uid('v');
+    const name = file.name.replace(/\.(html?|HTML?)$/, '');
+    tools.unshift({
+      id: uid('t'),
+      name,
+      desc: '',
+      category: 'imported',
+      tags: [],
+      created: now,
+      currentVersionId: vid,
+      versions: [{ id: vid, label: 'v1', code: text, notes: 'imported from ' + file.name, date: now }]
+    });
+    await persist();
+    renderIndex();
+    showToast(`imported "${name}"`);
+  }
+
+  e.target.value = '';
+});
+
+// ---------- Export ----------
+document.getElementById('exportBtn').addEventListener('click', () => {
+  const blob = new Blob([JSON.stringify(tools, null, 2)], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = 'htmlvault-export.json';
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+  showToast('exported');
+});
+
+// ---------- Keyboard shortcuts ----------
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'Escape'){
+    if (overlay.classList.contains('open')) closeModal();
+    if (verOverlay.classList.contains('open')) closeVerModal();
+  }
+  if (e.key === '/' && document.activeElement !== searchEl &&
+      !overlay.classList.contains('open') && !verOverlay.classList.contains('open')){
+    e.preventDefault();
+    searchEl.focus();
+  }
+});
+
+loadTools();
+</script>
+</body>
+</html>

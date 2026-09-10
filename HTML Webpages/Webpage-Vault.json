@@ -1,0 +1,68 @@
+[
+  {
+    "id": "t_1789034752670_m0emkt",
+    "name": "Terminal Code Snippets",
+    "desc": "Interactive dashboard for terminal and a-Shell commands.",
+    "category": "dashboards",
+    "tags": [
+      "terminal",
+      "shell"
+    ],
+    "created": 1789034752670,
+    "thumbnail": null,
+    "currentVersionId": "v1",
+    "versions": [
+      {
+        "id": "v1",
+        "label": "v1",
+        "code": "<!-- Terminal Code Snippets: original source not migrated yet.\n     Use \"add version\" on this tool's page to paste the real HTML. -->",
+        "notes": "imported from the old master index",
+        "date": 1777334400000
+      }
+    ]
+  },
+  {
+    "id": "t_1789034752670_j2wqn0",
+    "name": "Responsive HTML Editor",
+    "desc": "Side-by-side live editing environment.",
+    "category": "editors",
+    "tags": [
+      "editor",
+      "responsive"
+    ],
+    "created": 1789034752670,
+    "thumbnail": null,
+    "currentVersionId": "v1",
+    "versions": [
+      {
+        "id": "v1",
+        "label": "v1",
+        "code": "<!-- Responsive HTML Editor: original source not migrated yet.\n     Use \"add version\" on this tool's page to paste the real HTML. -->",
+        "notes": "imported from the old master index",
+        "date": 1777334400000
+      }
+    ]
+  },
+  {
+    "id": "t_1789034752670_fz84gy",
+    "name": "Markdown Live Preview",
+    "desc": "Responsive Markdown editor with a live preview. Side-by-side layout (stacks on mobile), marked.js for Markdown-to-HTML conversion, plus buttons to copy Markdown, copy rendered HTML, or export the raw Markdown as a .md file.",
+    "category": "converters",
+    "tags": [
+      "markdown",
+      "preview"
+    ],
+    "created": 1789034752670,
+    "thumbnail": null,
+    "currentVersionId": "v1",
+    "versions": [
+      {
+        "id": "v1",
+        "label": "v1",
+        "code": "<!-- Markdown Live Preview: original source not migrated yet.\n     Use \"add version\" on this tool's page to paste the real HTML. -->",
+        "notes": "imported from the old master index",
+        "date": 1777420800000
+      }
+    ]
+  }
+]
