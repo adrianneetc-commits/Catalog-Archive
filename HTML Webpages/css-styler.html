@@ -1,0 +1,637 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Live CSS Styler & Previewer</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=JetBrains+Mono:wght@400;500&family=Space+Grotesk:wght@500;700&display=swap" rel="stylesheet">
+  <style>
+    :root{
+      --bg: #0b0d12;
+      --bg-panel: #12151d;
+      --bg-panel-2: #171b25;
+      --border: #262b38;
+      --ink: #e7e9ee;
+      --ink-dim: #8890a4;
+      --ink-faint: #545c72;
+      --accent: #f2b035;
+      --accent-dim: #a67a2a;
+      --ok: #6fd6a0;
+      --radius: 10px;
+    }
+    *{ box-sizing: border-box; }
+    html,body{ margin:0; padding:0; }
+    body{
+      background: var(--bg);
+      color: var(--ink);
+      font-family: 'IBM Plex Mono', monospace;
+      min-height: 100vh;
+      background-image:
+        radial-gradient(ellipse 900px 500px at 15% -10%, rgba(242,176,53,0.07), transparent),
+        radial-gradient(ellipse 700px 500px at 100% 10%, rgba(111,214,160,0.05), transparent);
+    }
+    h1,h2,h3{ font-family: 'Space Grotesk', sans-serif; margin:0; }
+    ::selection{ background: rgba(242,176,53,0.35); }
+
+    /* ── Header ─────────────────────────────────────────── */
+    header{ max-width: 1400px; margin: 0 auto; padding: 40px 24px 24px; }
+    .eyebrow{
+      display:flex; align-items:center; gap:10px;
+      font-size: 11px; letter-spacing: 0.14em; text-transform: uppercase;
+      color: var(--ink-faint); margin-bottom: 12px;
+    }
+    .eyebrow .dot{ width:6px; height:6px; border-radius:50%; background: var(--accent); box-shadow: 0 0 8px var(--accent); }
+    h1{ font-size: 34px; font-weight: 700; letter-spacing: -0.01em; }
+    h1 span{ color: var(--accent); }
+    header p{ color: var(--ink-dim); font-size: 14px; line-height: 1.6; max-width: 640px; margin-top: 8px; }
+
+    /* ── Shell & Layout ─────────────────────────────────── */
+    .shell{ max-width: 1400px; margin: 0 auto; padding: 0 24px 60px; }
+
+    .panel{
+      background: var(--bg-panel);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      overflow: hidden;
+    }
+    .panel-head{
+      padding: 12px 16px;
+      border-bottom: 1px solid var(--border);
+      display:flex; align-items:center; justify-content: space-between;
+      flex-wrap: wrap; gap: 10px;
+      background: var(--bg-panel);
+    }
+    .panel-head h3{ font-size: 12px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--ink-dim); font-weight: 600; }
+    .panel-body{ padding: 14px 16px; }
+
+    /* ── Toolbar ────────────────────────────────────────── */
+    .toolbar{ margin-bottom: 18px; }
+    .toolbar .panel-body{
+      display: flex; align-items: center; gap: 12px; flex-wrap: wrap; padding: 12px 16px;
+    }
+    .toolbar .spacer{ flex: 1; }
+
+    button{ font-family: inherit; }
+    button.btn{
+      border: none; border-radius: 7px; padding: 8px 14px;
+      font-size: 12px; font-weight: 600; cursor: pointer; letter-spacing: 0.01em;
+      transition: transform .1s, filter .15s;
+      display:inline-flex; align-items:center; gap:6px; white-space: nowrap;
+    }
+    button.btn:active{ transform: scale(0.97); }
+    .btn-primary{ background: var(--accent); color: #1a1305; }
+    .btn-primary:hover{ filter: brightness(1.08); }
+    .btn-ghost{ background: transparent; color: var(--ink-dim); border: 1px solid var(--border) !important; }
+    .btn-ghost:hover{ color: var(--ink); border-color: var(--ink-faint) !important; }
+    .status-text{ font-size: 11px; color: var(--ink-faint); }
+    .status-text.ok{ color: var(--ok); }
+    .status-text.err{ color: #f27059; }
+
+    /* ── Split Editor Layout ────────────────────────────── */
+    .split{
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 18px;
+      align-items: stretch;
+    }
+    @media (max-width: 960px){
+      .split{ grid-template-columns: 1fr; }
+    }
+
+    .editor-column, .preview-column{
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+
+    .chrome-bar{
+      display:flex; align-items:center; gap:7px;
+      padding: 10px 14px; border-bottom: 1px solid var(--border);
+      background: var(--bg-panel-2);
+    }
+    .chrome-bar .light{ width:9px; height:9px; border-radius:50%; }
+    .chrome-bar .light-red{ background: #f27059; opacity: 0.8; }
+    .chrome-bar .light-yellow{ background: var(--accent); opacity: 0.8; }
+    .chrome-bar .light-green{ background: var(--ok); opacity: 0.8; }
+    .chrome-bar .filename{ margin-left: 8px; font-size: 11px; color: var(--ink-faint); }
+
+    /* ── Color Palette Bar ──────────────────────────────── */
+    .palette-drawer{
+      background: var(--bg-panel-2);
+      border-bottom: 1px solid var(--border);
+      padding: 10px 14px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      align-items: center;
+      min-height: 44px;
+    }
+    .palette-label{
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--ink-faint);
+    }
+    .color-chip-group{
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: var(--bg-panel);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 3px 8px;
+    }
+    .color-chip-group input[type="color"]{
+      -webkit-appearance: none;
+      border: none;
+      width: 18px;
+      height: 18px;
+      border-radius: 4px;
+      cursor: pointer;
+      background: transparent;
+      padding: 0;
+    }
+    .color-chip-group input[type="color"]::-webkit-color-swatch-wrapper{ padding: 0; }
+    .color-chip-group input[type="color"]::-webkit-color-swatch{ border-radius: 3px; border: 1px solid rgba(255,255,255,0.2); }
+    .color-name{ font-size: 11px; color: var(--ink-dim); font-family: 'JetBrains Mono', monospace; }
+
+    /* ── Editor Textarea & Preview Frame ────────────────── */
+    textarea#cssInput{
+      width: 100%;
+      height: 560px;
+      resize: vertical;
+      background: var(--bg-panel-2);
+      color: var(--ink);
+      border: none;
+      padding: 18px 20px;
+      font-size: 12.5px;
+      line-height: 1.7;
+      font-family: 'JetBrains Mono', monospace;
+      outline: none;
+      display: block;
+    }
+
+    .preview-container{
+      height: 100%;
+      min-height: 600px;
+      display: flex;
+      flex-direction: column;
+    }
+
+    iframe#previewFrame{
+      width: 100%;
+      flex: 1;
+      min-height: 570px;
+      border: none;
+      background: #ffffff;
+      border-bottom-left-radius: var(--radius);
+      border-bottom-right-radius: var(--radius);
+    }
+
+    .dropzone-inline{
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .dropzone-inline input[type="file"]{ display: none; }
+
+    /* ── Toast ──────────────────────────────────────────── */
+    #toast{
+      position: fixed; bottom: 26px; left: 50%; transform: translateX(-50%) translateY(20px);
+      background: var(--ink); color: #14161c; padding: 11px 20px; border-radius: 8px;
+      font-size: 12px; font-weight: 600; opacity:0; pointer-events:none;
+      transition: all .25s cubic-bezier(.2,.9,.3,1);
+      z-index: 100;
+    }
+    #toast.show{ opacity:1; transform: translateX(-50%) translateY(0); }
+    #toast.err{ background: #f27059; color: #fff; }
+
+    footer{ max-width: 1400px; margin: 0 auto; padding: 0 24px 40px; color: var(--ink-faint); font-size: 11px; }
+
+    ::-webkit-scrollbar{ width:9px; height:9px; }
+    ::-webkit-scrollbar-thumb{ background: var(--border); border-radius: 6px; }
+    ::-webkit-scrollbar-track{ background: transparent; }
+  </style>
+</head>
+<body>
+
+  <header>
+    <div class="eyebrow"><span class="dot"></span> Live Workspace</div>
+    <h1>CSS Styler &amp; <span>Live Previewer</span></h1>
+    <p>Upload any HTML layout, edit or inject CSS side by side, and adjust hex values and CSS variables with instant sandbox rendering.</p>
+  </header>
+
+  <main class="shell">
+    <!-- Action Toolbar -->
+    <div class="panel toolbar">
+      <div class="panel-body">
+        <label class="dropzone-inline">
+          <input type="file" id="htmlFileInput" accept=".html,.htm" />
+          <button class="btn btn-primary" onclick="document.getElementById('htmlFileInput').click()">Load HTML File</button>
+        </label>
+        <label class="dropzone-inline">
+          <input type="file" id="cssFileInput" accept=".css" />
+          <button class="btn btn-ghost" onclick="document.getElementById('cssFileInput').click()">Load CSS File</button>
+        </label>
+        <button class="btn btn-ghost" id="btnDownloadCss">Download CSS</button>
+        <button class="btn btn-ghost" id="btnResetCss">Reset CSS</button>
+        <label class="status-text" style="display:inline-flex; align-items:center; gap:6px; cursor:pointer;">
+          <input type="checkbox" id="editableToggle" checked style="cursor:pointer; accent-color: var(--accent);" />
+          Editable preview
+        </label>
+        <div class="spacer"></div>
+        <span class="status-text" id="statusIndicator">Default sample loaded</span>
+      </div>
+    </div>
+
+    <!-- Side-by-Side Grid -->
+    <div class="split">
+      <!-- Left: Editor & Palette -->
+      <div class="editor-column">
+        <div class="panel">
+          <div class="panel-head">
+            <h3>CSS Editor</h3>
+            <span class="status-text" id="cssStats">style.css &bull; 0 B</span>
+          </div>
+          <div class="chrome-bar">
+            <span class="light light-red"></span>
+            <span class="light light-yellow"></span>
+            <span class="light light-green"></span>
+            <span class="filename">editor &bull; dynamic injection</span>
+          </div>
+
+          <!-- Auto-detected Color Palette Drawer -->
+          <div class="palette-drawer" id="paletteDrawer">
+            <span class="palette-label">Palette:</span>
+            <div id="colorSwatches" style="display:inline-flex; gap:8px; flex-wrap:wrap;"></div>
+          </div>
+
+          <!-- Linked stylesheet notice (shown when an imported HTML file references external CSS) -->
+          <div class="status-text" id="cssLinkNotice" style="display:none; padding: 8px 16px; border-bottom: 1px solid var(--border); background: var(--bg-panel-2);"></div>
+
+          <textarea id="cssInput" spellcheck="false" placeholder="/* Enter CSS here... */"></textarea>
+        </div>
+      </div>
+
+      <!-- Right: Live Sandboxed Output -->
+      <div class="preview-column">
+        <div class="panel preview-container">
+          <div class="panel-head">
+            <h3>Live Preview</h3>
+            <span class="status-text" id="docStats">Target: embedded default</span>
+          </div>
+          <div class="chrome-bar">
+            <span class="light light-red"></span>
+            <span class="light light-yellow"></span>
+            <span class="light light-green"></span>
+            <span class="filename" id="previewUrl">sandbox://index.html</span>
+          </div>
+          <iframe id="previewFrame" sandbox="allow-scripts allow-same-origin" title="Live HTML Preview"></iframe>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <footer>
+    Client-side Sandbox &bull; Changes apply dynamically via Blob Document URL
+  </footer>
+
+  <div id="toast">Notice</div>
+
+  <script>
+    const htmlFileInput = document.getElementById('htmlFileInput');
+    const cssFileInput = document.getElementById('cssFileInput');
+    const cssInput = document.getElementById('cssInput');
+    const previewFrame = document.getElementById('previewFrame');
+    const colorSwatches = document.getElementById('colorSwatches');
+    const statusIndicator = document.getElementById('statusIndicator');
+    const docStats = document.getElementById('docStats');
+    const cssStats = document.getElementById('cssStats');
+    const cssLinkNotice = document.getElementById('cssLinkNotice');
+    const editableToggle = document.getElementById('editableToggle');
+    const toast = document.getElementById('toast');
+    const btnDownloadCss = document.getElementById('btnDownloadCss');
+    const btnResetCss = document.getElementById('btnResetCss');
+
+    // Default seed content
+    let rawHtmlContent = `<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Preview Page</title>
+</head>
+<body>
+  <div class="card">
+    <div class="badge">Preview Mode</div>
+    <h2>Component Showcase</h2>
+    <p>Upload an HTML document to preview custom layouts, or experiment modifying elements directly with the editor.</p>
+    <div class="actions">
+      <button class="primary-btn">Interactive Button</button>
+      <button class="secondary-btn">Secondary Action</button>
+    </div>
+  </div>
+</body>
+</html>`;
+
+    const defaultCss = `:root {
+  --bg-color: #0d1117;
+  --card-bg: #161b22;
+  --accent-color: #f2b035;
+  --text-main: #f0f6fc;
+  --text-muted: #8b949e;
+  --border-color: #30363d;
+}
+
+body {
+  margin: 0;
+  padding: 40px 20px;
+  background-color: var(--bg-color);
+  color: var(--text-main);
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 80vh;
+}
+
+.card {
+  background: var(--card-bg);
+  border: 1px solid var(--border-color);
+  border-radius: 12px;
+  padding: 30px;
+  max-width: 440px;
+  width: 100%;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.4);
+}
+
+.badge {
+  display: inline-block;
+  background: rgba(242, 176, 53, 0.15);
+  color: var(--accent-color);
+  padding: 4px 10px;
+  border-radius: 20px;
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-bottom: 16px;
+}
+
+h2 {
+  margin: 0 0 10px 0;
+  font-size: 22px;
+}
+
+p {
+  color: var(--text-muted);
+  font-size: 14px;
+  line-height: 1.6;
+  margin-bottom: 24px;
+}
+
+.actions {
+  display: flex;
+  gap: 12px;
+}
+
+button {
+  padding: 10px 18px;
+  border-radius: 6px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  border: none;
+  transition: opacity 0.2s;
+}
+
+button:hover {
+  opacity: 0.9;
+}
+
+.primary-btn {
+  background: var(--accent-color);
+  color: #12151d;
+}
+
+.secondary-btn {
+  background: transparent;
+  color: var(--text-main);
+  border: 1px solid var(--border-color);
+}`;
+
+    cssInput.value = defaultCss;
+
+    function showToast(msg, isErr = false) {
+      toast.textContent = msg;
+      toast.className = isErr ? 'err show' : 'show';
+      setTimeout(() => { toast.className = ''; }, 2600);
+    }
+
+    function formatBytes(bytes) {
+      if (bytes === 0) return '0 B';
+      const k = 1024;
+      const sizes = ['B', 'KB', 'MB'];
+      const i = Math.floor(Math.log(bytes) / Math.log(k));
+      return parseFloat((bytes / Math.pow(k, i)).toFixed(1)) + ' ' + sizes[i];
+    }
+
+    // Render HTML + Live CSS into iframe
+    function updatePreview() {
+      const activeCss = cssInput.value;
+      const parser = new DOMParser();
+      const doc = parser.parseFromString(rawHtmlContent, 'text/html');
+
+      // Create and inject custom style tag
+      const customStyle = doc.createElement('style');
+      customStyle.id = 'live-injected-styles';
+      customStyle.textContent = activeCss;
+      doc.head.appendChild(customStyle);
+
+      // Make every element in the loaded document directly editable, as it
+      // loads into the preview — click any element in the sandbox and type.
+      if (editableToggle.checked) {
+        const NON_EDITABLE_TAGS = new Set(['SCRIPT', 'STYLE', 'HEAD', 'HTML', 'META', 'LINK', 'TITLE', 'BASE', 'NOSCRIPT']);
+        doc.body.querySelectorAll('*').forEach((el) => {
+          if (!NON_EDITABLE_TAGS.has(el.tagName)) {
+            el.setAttribute('contenteditable', 'true');
+          }
+        });
+        doc.body.setAttribute('contenteditable', 'true');
+
+        const editStyle = doc.createElement('style');
+        editStyle.id = 'editable-outline-styles';
+        editStyle.textContent = `
+          [contenteditable="true"]{ outline: none; }
+          [contenteditable="true"]:hover{ outline: 1px dashed rgba(242,176,53,0.55); outline-offset: 2px; cursor: text; }
+          [contenteditable="true"]:focus{ outline: 1px solid #f2b035; outline-offset: 2px; }
+        `;
+        doc.head.appendChild(editStyle);
+      }
+
+      previewFrame.srcdoc = '<!DOCTYPE html>\n' + doc.documentElement.outerHTML;
+
+      cssStats.textContent = `style.css • ${formatBytes(new Blob([activeCss]).size)}`;
+    }
+
+    // Pull CSS straight out of an uploaded HTML file: collects every inline
+    // <style> block, and flags any <link rel="stylesheet"> references that
+    // point at separate files (those can't be auto-fetched from a local
+    // file, so they're surfaced for the user to load via "Load CSS File").
+    function extractCssFromHtml(htmlText) {
+      const parser = new DOMParser();
+      const doc = parser.parseFromString(htmlText, 'text/html');
+      const inlineCss = Array.from(doc.querySelectorAll('style'))
+        .map(s => s.textContent)
+        .filter(t => t && t.trim())
+        .join('\n\n');
+      const linkedHrefs = Array.from(doc.querySelectorAll('link[rel="stylesheet"]'))
+        .map(l => l.getAttribute('href'))
+        .filter(Boolean);
+      return { inlineCss, linkedHrefs };
+    }
+
+    // Detect hex values & custom CSS properties to create dynamic swatches
+    function scanColors() {
+      const css = cssInput.value;
+      colorSwatches.innerHTML = '';
+
+      // Match hex colors: #ffffff, #fff, and custom props: --var-name: #hex
+      const colorPropRegex = /(--[\w-]+)\s*:\s*(#[0-9a-fA-F]{3,6})/g;
+      let match;
+      const seen = new Set();
+
+      while ((match = colorPropRegex.exec(css)) !== null) {
+        const propName = match[1];
+        let hexVal = match[2];
+
+        // Expand short hex #fff -> #ffffff
+        if (hexVal.length === 4) {
+          hexVal = '#' + hexVal[1] + hexVal[1] + hexVal[2] + hexVal[2] + hexVal[3] + hexVal[3];
+        }
+
+        if (seen.has(propName)) continue;
+        seen.add(propName);
+
+        const group = document.createElement('div');
+        group.className = 'color-chip-group';
+
+        const input = document.createElement('input');
+        input.type = 'color';
+        input.value = hexVal;
+        input.title = propName;
+
+        const label = document.createElement('span');
+        label.className = 'color-name';
+        label.textContent = propName.replace('--', '');
+
+        // When color is changed, replace it in the textarea and re-render
+        input.addEventListener('input', (e) => {
+          const newColor = e.target.value;
+          const reg = new RegExp(`(${propName}\\s*:\\s*)(#[0-9a-fA-F]{3,6})`, 'g');
+          cssInput.value = cssInput.value.replace(reg, `$1${newColor}`);
+          updatePreview();
+        });
+
+        group.appendChild(input);
+        group.appendChild(label);
+        colorSwatches.appendChild(group);
+      }
+
+      if (seen.size === 0) {
+        const emptyMsg = document.createElement('span');
+        emptyMsg.className = 'status-text';
+        emptyMsg.textContent = 'No hex variables (--var: #hex) detected';
+        colorSwatches.appendChild(emptyMsg);
+      }
+    }
+
+    // File Input handling — loading an HTML file now also imports any CSS
+    // found inside it (inline <style> blocks) straight into the editor.
+    htmlFileInput.addEventListener('change', (e) => {
+      const file = e.target.files[0];
+      if (!file) return;
+
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        rawHtmlContent = event.target.result;
+        docStats.textContent = `Target: ${file.name}`;
+
+        const { inlineCss, linkedHrefs } = extractCssFromHtml(rawHtmlContent);
+
+        if (inlineCss) {
+          cssInput.value = inlineCss;
+          statusIndicator.textContent = `Loaded ${file.name} + imported CSS`;
+        } else {
+          statusIndicator.textContent = `Loaded ${file.name} (no inline CSS found)`;
+        }
+        statusIndicator.className = 'status-text ok';
+
+        if (linkedHrefs.length) {
+          cssLinkNotice.textContent = `This file also links ${linkedHrefs.length} external stylesheet(s) — ${linkedHrefs.join(', ')} — use "Load CSS File" to import them, since local files can't be auto-fetched.`;
+          cssLinkNotice.style.display = 'block';
+          showToast(`Loaded ${file.name} — ${linkedHrefs.length} linked stylesheet(s) need manual import`);
+        } else {
+          cssLinkNotice.style.display = 'none';
+          showToast(inlineCss ? `Loaded ${file.name} + its CSS` : `Loaded ${file.name}`);
+        }
+
+        updatePreview();
+        scanColors();
+      };
+      reader.readAsText(file);
+    });
+
+    // Import CSS directly from a standalone .css file (e.g. one referenced
+    // via <link> in an HTML file that couldn't be auto-fetched above).
+    cssFileInput.addEventListener('change', (e) => {
+      const file = e.target.files[0];
+      if (!file) return;
+
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        cssInput.value = event.target.result;
+        updatePreview();
+        scanColors();
+        showToast(`Loaded CSS from ${file.name}`);
+      };
+      reader.readAsText(file);
+    });
+
+    // Toggling editable preview re-renders immediately so it takes effect
+    // as soon as it's switched, not just on next file load.
+    editableToggle.addEventListener('change', () => {
+      updatePreview();
+      showToast(editableToggle.checked ? 'Preview elements are now editable' : 'Editable preview disabled');
+    });
+
+    // Real-time editor input
+    cssInput.addEventListener('input', () => {
+      updatePreview();
+      scanColors();
+    });
+
+    btnDownloadCss.addEventListener('click', () => {
+      const blob = new Blob([cssInput.value], { type: 'text/css;charset=utf-8' });
+      const link = document.createElement('a');
+      link.href = URL.createObjectURL(blob);
+      link.download = 'style.css';
+      link.click();
+      URL.revokeObjectURL(link.href);
+      showToast('Downloaded style.css');
+    });
+
+    btnResetCss.addEventListener('click', () => {
+      cssInput.value = defaultCss;
+      updatePreview();
+      scanColors();
+      showToast('Reset CSS to default');
+    });
+
+    // Initial load
+    updatePreview();
+    scanColors();
+  </script>
+</body>
+</html>

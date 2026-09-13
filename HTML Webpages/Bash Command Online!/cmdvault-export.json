@@ -1,0 +1,10 @@
+[
+  {
+    "id": "c_1789047940029_twdutw",
+    "name": "Set Mac to Dark Mode",
+    "command": "osascript -e 'tell application \"System Events\" to tell appearance preferences to set dark mode to true'",
+    "category": "AppleScript",
+    "notes": "To turn on dark mode on macOS, run this command in your Terminal",
+    "created": 1789047940029
+  }
+]

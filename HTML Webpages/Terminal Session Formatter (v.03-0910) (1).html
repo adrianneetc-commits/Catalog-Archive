@@ -1,0 +1,712 @@
+<!DOCTYPE html>
+<html lang="en" style="--bg: #0b0d12; --card-bg: #12151d; --border: #262b38; --text: #e7e9ee; --muted: #8890a4; --accent: #f2b035; --input-bubble: #1a1710; --response-bubble: #14161f; --code-bg: #0b0d12;"><head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Terminal Session Formatter</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="">
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&amp;family=Space+Grotesk:wght@500;600;700&amp;display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #0b0d12;
+      --card-bg: #12151d;
+      --border: #262b38;
+      --text: #e7e9ee;
+      --muted: #8890a4;
+      --accent: #f2b035;
+      --input-bubble: #1a1710;
+      --response-bubble: #14161f;
+      --code-bg: #0b0d12;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    }
+
+    body {
+      background-color: var(--bg);
+      color: var(--text);
+      padding: 2rem;
+      min-height: 100vh;
+      transition: background-color .2s, color .2s;
+    }
+
+    .container {
+      max-width: 1000px;
+      margin: 0 auto;
+    }
+
+    h1 {
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 1.75rem;
+      margin-bottom: 0.5rem;
+      color: #f8fafc;
+      letter-spacing: -0.01em;
+    }
+
+    p.subtitle {
+      color: var(--muted);
+      margin-bottom: 1.5rem;
+      font-size: 0.9rem;
+    }
+
+    .controls {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 1rem;
+      background: var(--card-bg);
+      padding: 1.5rem;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+      margin-bottom: 2rem;
+    }
+
+    .prompt-config {
+      display: flex;
+      gap: 0.75rem;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+
+    .prompt-config label {
+      font-size: 0.8rem;
+      color: var(--muted);
+      white-space: nowrap;
+    }
+
+    .prompt-config .hint {
+      font-size: 0.75rem;
+      color: var(--muted);
+      opacity: 0.8;
+    }
+
+    input[type="text"], select {
+      background: var(--code-bg);
+      border: 1px solid var(--border);
+      color: var(--text);
+      padding: 0.5rem 0.75rem;
+      border-radius: 4px;
+      outline: none;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.82rem;
+    }
+
+    input[type="text"] {
+      flex: 1;
+      min-width: 200px;
+    }
+
+    select {
+      cursor: pointer;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    }
+
+    textarea {
+      width: 100%;
+      height: 160px;
+      background: var(--code-bg);
+      border: 1px solid var(--border);
+      color: var(--text);
+      padding: 0.75rem;
+      border-radius: 4px;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.85rem;
+      resize: vertical;
+      outline: none;
+    }
+
+    .actions {
+      display: flex;
+      gap: 0.75rem;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+
+    button, label.btn {
+      background: var(--accent);
+      color: #1a1305;
+      border: none;
+      padding: 0.6rem 1.2rem;
+      border-radius: 4px;
+      cursor: pointer;
+      font-weight: 600;
+      font-size: 0.85rem;
+      transition: filter 0.15s, transform .1s;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    button:active, label.btn:active { transform: scale(0.97); }
+    button:hover, label.btn:hover { filter: brightness(1.08); }
+
+    button.secondary {
+      background: transparent;
+      color: var(--text);
+      border: 1px solid var(--border);
+    }
+
+    button.secondary:hover {
+      background: rgba(255,255,255,0.05);
+      filter: none;
+    }
+
+    input[type="file"] {
+      display: none;
+    }
+
+    #document-view {
+      display: flex;
+      flex-direction: column;
+      gap: 1.5rem;
+    }
+
+    .exchange {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      overflow: hidden;
+    }
+
+    .block {
+      padding: 1.25rem;
+      position: relative;
+    }
+
+    .block-header {
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      margin-bottom: 0.5rem;
+      font-weight: 700;
+      display: block;
+    }
+
+    .meta-badge {
+      text-transform: none;
+      letter-spacing: normal;
+      font-weight: 400;
+      font-size: 0.7rem;
+      color: var(--muted);
+      margin-left: 0.6rem;
+      font-family: 'JetBrains Mono', monospace;
+    }
+
+    .input-block {
+      background: var(--input-bubble);
+      border-bottom: 1px solid var(--border);
+    }
+
+    .input-block .block-header {
+      color: #818cf8;
+    }
+
+    .response-block {
+      background: var(--response-bubble);
+    }
+
+    .response-block .block-header {
+      color: var(--accent);
+    }
+
+    .preamble-block .block-header {
+      color: var(--muted);
+    }
+
+    pre {
+      font-family: "JetBrains Mono", Consolas, Monaco, monospace;
+      font-size: 0.87rem;
+      white-space: pre-wrap;
+      word-break: break-word;
+      line-height: 1.5;
+    }
+
+    .copy-btn {
+      position: absolute;
+      top: 0.75rem;
+      right: 0.75rem;
+      background: rgba(255, 255, 255, 0.08);
+      border: 1px solid var(--border);
+      color: var(--muted);
+      font-size: 0.72rem;
+      padding: 0.25rem 0.5rem;
+      border-radius: 4px;
+      cursor: pointer;
+      font-weight: 500;
+    }
+
+    .copy-btn:hover {
+      background: rgba(255, 255, 255, 0.15);
+      color: var(--text);
+    }
+
+    .empty-state {
+      padding: 2.5rem 1rem;
+      text-align: center;
+      color: var(--muted);
+      font-size: 0.85rem;
+      border: 1px dashed var(--border);
+      border-radius: 8px;
+    }
+
+    #toast {
+      position: fixed;
+      bottom: 26px;
+      left: 50%;
+      transform: translateX(-50%) translateY(20px);
+      background: var(--text);
+      color: #14161c;
+      padding: 11px 20px;
+      border-radius: 8px;
+      font-size: 12.5px;
+      font-weight: 600;
+      opacity: 0;
+      pointer-events: none;
+      transition: all .25s cubic-bezier(.2,.9,.3,1);
+      z-index: 999;
+    }
+    #toast.show {
+      opacity: 1;
+      transform: translateX(-50%) translateY(0);
+    }
+  </style>
+  <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
+</head>
+<body>
+  <div class="container">
+    <h1>Terminal Session Formatter</h1>
+    <p class="subtitle">Parse raw terminal transcripts into organized command/response blocks — with a preset for two-line custom zsh prompts, plus theming and styled export.</p>
+
+    <div class="controls">
+      <div class="prompt-config">
+        <label for="preset-select">Format Preset:</label>
+        <select id="preset-select">
+          <option value="zshCustom" selected="">zsh Custom (status line + ζ prompt)</option>
+          <option value="generic">Generic ($, &gt;, #)</option>
+          <option value="custom">Custom (single-line regex)</option>
+        </select>
+        <label for="theme-select">Theme:</label>
+        <select id="theme-select">
+          <option value="amber" selected="">Amber Ink</option>
+          <option value="midnight">Midnight Navy</option>
+          <option value="terminal">Terminal Green</option>
+          <option value="solarized">Solarized Dark</option>
+        </select>
+      </div>
+
+      <div id="double-pattern-config" class="prompt-config" style="display: flex;">
+        <label for="status-pattern">Status Line Regex:</label>
+        <input type="text" id="status-pattern" value="^#\s+(\S+@\S+):\s+(.*?)\s*(?:\(([\d:]+)\))?\s*$">
+        <label for="cmd-pattern">Command Line Regex:</label>
+        <input type="text" id="cmd-pattern" value="^ζ\s?(.*)$">
+      </div>
+      <div class="prompt-config">
+        <span class="hint">Status line captures user@host, cwd, and timestamp. Command line captures everything after the prompt glyph (default: ζ — edit if yours differs).</span>
+      </div>
+
+      <div id="single-pattern-config" class="prompt-config" style="display:none;">
+        <label for="prompt-pattern">Prompt Regex:</label>
+        <input type="text" id="prompt-pattern" value="^(\$|&gt;|User:)">
+        <span class="hint">(Supports RegExp syntax — matched portion is stripped to get the command)</span>
+      </div>
+
+      <textarea id="raw-input" placeholder="Paste your raw terminal output or transcript here..."></textarea>
+
+      <div class="actions">
+        <button onclick="parseSession()">Format Content</button>
+        <label class="btn secondary">
+          Upload File
+          <input type="file" id="file-upload" accept=".txt,.log" onchange="handleFileUpload(event)">
+        </label>
+        <button class="secondary" onclick="exportMarkdown()">Copy as Markdown</button>
+        <button class="secondary" onclick="exportStyledHtml()">Copy as Styled HTML</button>
+        <button class="secondary" onclick="exportAsPng()">Export as PNG</button>
+        <button class="secondary" onclick="savePage()">Save HTML to Device</button>
+      </div>
+    </div>
+
+    <div id="document-view"><div class="exchange">
+          <div class="block preamble-block">
+            <span class="block-header">Session Info</span>
+            <button class="copy-btn" onclick="copyText(this, " last="" login:="" wed="" sep="" 9="" 22:43:10="" on="" ttys002")"="" style="">Copy</button>
+            <pre><code>Last login: Wed Sep  9 22:43:10 on ttys002</code></pre>
+          </div></div><div class="exchange">
+          <div class="block input-block">
+            <span class="block-header">Input / Command<span class="meta-badge">adrianne@adrianne-imac.local · ~ · 22:43:22</span></span>
+            <button class="copy-btn" onclick="copyText(this, " node="" users="" adrianne="" library="" mobile\\="" documents="" com\\~apple\\~clouddocs="" github\\="" \\|\\="" catalog-archive="" html\\="" webpages="" terminal\\="" command\\="" online\\!="" archive="" command-vault_1.py")"="" style="">Copy</button>
+            <pre><code>node /Users/adrianne/Library/Mobile\ Documents/com\~apple\~CloudDocs/GIthub\ \|\ Catalog-Archive/HTML\ Webpages/Terminal\ Command\ Online\!/archive/command-vault_1.py</code></pre>
+          </div>
+          
+          <div class="block response-block">
+            <span class="block-header">Response / Output</span>
+            <button class="copy-btn" onclick="copyText(this, " users="" adrianne="" library="" mobile="" documents="" com~apple~clouddocs="" github="" |="" catalog-archive="" html="" webpages="" terminal="" command="" online!="" archive="" command-vault_1.py:2\n\"\"\"\n="" ^\n\nsyntaxerror:="" invalid="" or="" unexpected="" token\n="" at="" wrapsafe="" (node:internal="" modules="" cjs="" loader:1743:18)\n="" module._compile="" loader:1786:20)\n="" object..js="" loader:1943:10)\n="" module.load="" loader:1533:32)\n="" module._load="" loader:1335:12)\n="" wrapmoduleload="" loader:255:19)\n="" module.executeuserentrypoint="" [as="" runmain]="" run_main:154:5)\n="" node:internal="" main="" run_main_module:33:47\n\nnode.js="" v24.14.1")"="" style="">Copy</button>
+            <pre><code>/Users/adrianne/Library/Mobile Documents/com~apple~CloudDocs/GIthub | Catalog-Archive/HTML Webpages/Terminal Command Online!/archive/command-vault_1.py:2
+"""
+  ^
+
+SyntaxError: Invalid or unexpected token
+    at wrapSafe (node:internal/modules/cjs/loader:1743:18)
+    at Module._compile (node:internal/modules/cjs/loader:1786:20)
+    at Object..js (node:internal/modules/cjs/loader:1943:10)
+    at Module.load (node:internal/modules/cjs/loader:1533:32)
+    at Module._load (node:internal/modules/cjs/loader:1335:12)
+    at wrapModuleLoad (node:internal/modules/cjs/loader:255:19)
+    at Module.executeUserEntryPoint [as runMain] (node:internal/modules/run_main:154:5)
+    at node:internal/main/run_main_module:33:47
+
+Node.js v24.14.1</code></pre>
+          </div>
+        </div><div class="exchange">
+          <div class="block input-block">
+            <span class="block-header">Input / Command<span class="meta-badge">adrianne@adrianne-imac.local · ~ · 22:43:39</span></span>
+            <button class="copy-btn" onclick="copyText(this, " python3="" cmdvault-runner.py")"="" style="">Copy</button>
+            <pre><code>python3 cmdvault-runner.py</code></pre>
+          </div>
+          
+          <div class="block response-block">
+            <span class="block-header">Response / Output</span>
+            <button class="copy-btn" onclick="copyText(this, " library="" developer="" commandlinetools="" usr="" bin="" python3:="" can't="" open="" file="" '="" users="" adrianne="" cmdvault-runner.py':="" [errno="" 2]="" no="" such="" or="" directory")"="" style="">Copy</button>
+            <pre><code>/Library/Developer/CommandLineTools/usr/bin/python3: can't open file '/Users/adrianne/cmdvault-runner.py': [Errno 2] No such file or directory</code></pre>
+          </div>
+        </div><div class="exchange">
+          <div class="block input-block">
+            <span class="block-header">Input / Command<span class="meta-badge">adrianne@adrianne-imac.local · ~ · 22:51:16</span></span>
+            <button class="copy-btn" onclick="copyText(this, " python3="" users="" adrianne="" library="" mobile\\="" documents="" com\\~apple\\~clouddocs="" github\\="" \\|\\="" catalog-archive="" html\\="" webpages="" terminal\\="" command\\="" online\\!="" archive="" command-vault_1.py")"="" style="">Copy</button>
+            <pre><code>python3 /Users/adrianne/Library/Mobile\ Documents/com\~apple\~CloudDocs/GIthub\ \|\ Catalog-Archive/HTML\ Webpages/Terminal\ Command\ Online\!/archive/command-vault_1.py</code></pre>
+          </div>
+          
+          <div class="block response-block">
+            <span class="block-header">Response / Output</span>
+            <button class="copy-btn" onclick="copyText(this, " cmdvault="" runner="" listening="" on="" http:="" 127.0.0.1:8765\ntoken:="" 1f06654ab088b10fc5edf00e85e8ebe5\npaste="" this="" token="" into="" cmdvault's="" settings,="" then="" hit="" connect.\nctrl+c="" to="" stop.")"="" style="">Copy</button>
+            <pre><code>cmdvault runner listening on http://127.0.0.1:8765
+token: 1f06654ab088b10fc5edf00e85e8ebe5
+Paste this token into cmdvault's Runner settings, then hit Connect.
+Ctrl+C to stop.</code></pre>
+          </div>
+        </div></div>
+  </div>
+
+  <div id="toast" class="">Copied styled HTML fragment ✓</div>
+
+  <script>
+    /* ─────────────────────────────────────────────────────────
+       Theming
+    ───────────────────────────────────────────────────────── */
+    const THEMES = {
+      amber: {
+        '--bg': '#0b0d12', '--card-bg': '#12151d', '--border': '#262b38',
+        '--text': '#e7e9ee', '--muted': '#8890a4', '--accent': '#f2b035',
+        '--input-bubble': '#1a1710', '--response-bubble': '#14161f', '--code-bg': '#0b0d12'
+      },
+      midnight: {
+        '--bg': '#0f172a', '--card-bg': '#1e293b', '--border': '#334155',
+        '--text': '#e2e8f0', '--muted': '#94a3b8', '--accent': '#38bdf8',
+        '--input-bubble': '#1e1e38', '--response-bubble': '#182635', '--code-bg': '#0b1120'
+      },
+      terminal: {
+        '--bg': '#000000', '--card-bg': '#0a0f0a', '--border': '#1f3d1f',
+        '--text': '#33ff33', '--muted': '#2b8f2b', '--accent': '#39ff14',
+        '--input-bubble': '#001500', '--response-bubble': '#000d00', '--code-bg': '#000000'
+      },
+      solarized: {
+        '--bg': '#002b36', '--card-bg': '#073642', '--border': '#0e4a58',
+        '--text': '#eee8d5', '--muted': '#93a1a1', '--accent': '#b58900',
+        '--input-bubble': '#073642', '--response-bubble': '#00252c', '--code-bg': '#001f27'
+      }
+    };
+
+    function applyTheme(name) {
+      const t = THEMES[name] || THEMES.amber;
+      Object.entries(t).forEach(([k, v]) => document.documentElement.style.setProperty(k, v));
+    }
+
+    function getComputedThemeVars() {
+      const cs = getComputedStyle(document.documentElement);
+      const keys = ['--bg', '--card-bg', '--border', '--text', '--muted', '--accent', '--input-bubble', '--response-bubble', '--code-bg'];
+      const out = {};
+      keys.forEach(k => out[k] = cs.getPropertyValue(k).trim());
+      return out;
+    }
+
+    /* ─────────────────────────────────────────────────────────
+       Preset UI
+    ───────────────────────────────────────────────────────── */
+    function updatePresetUI() {
+      const preset = document.getElementById('preset-select').value;
+      document.getElementById('single-pattern-config').style.display = (preset === 'generic' || preset === 'custom') ? 'flex' : 'none';
+      document.getElementById('double-pattern-config').style.display = (preset === 'zshCustom') ? 'flex' : 'none';
+      if (preset === 'generic') {
+        document.getElementById('prompt-pattern').value = '^(\\$|>|User:)';
+      }
+    }
+
+    /* ─────────────────────────────────────────────────────────
+       Parsing
+    ───────────────────────────────────────────────────────── */
+    let lastParsed = null;
+
+    function parseSession() {
+      const raw = document.getElementById('raw-input').value;
+      const preset = document.getElementById('preset-select').value;
+
+      if (!raw.trim()) {
+        lastParsed = null;
+        renderDocument([], []);
+        return;
+      }
+
+      const lines = raw.split('\n').map(l => l.replace(/[ \t]+$/, ''));
+      let preamble = [];
+      let exchanges = [];
+
+      if (preset === 'zshCustom') {
+        let statusRe, cmdRe;
+        try { statusRe = new RegExp(document.getElementById('status-pattern').value); }
+        catch (e) { statusRe = /^#\s+(\S+@\S+):\s+(.*?)\s*(?:\(([\d:]+)\))?\s*$/; }
+        try { cmdRe = new RegExp(document.getElementById('cmd-pattern').value); }
+        catch (e) { cmdRe = /^ζ\s?(.*)$/; }
+
+        let pendingMeta = null;
+        let current = null;
+
+        lines.forEach(line => {
+          const statusMatch = line.match(statusRe);
+          if (statusMatch) {
+            if (current) { exchanges.push(current); current = null; }
+            pendingMeta = { user: statusMatch[1] || '', cwd: statusMatch[2] || '', time: statusMatch[3] || '' };
+            return;
+          }
+          const cmdMatch = line.match(cmdRe);
+          if (cmdMatch) {
+            if (current) exchanges.push(current);
+            const inputText = (cmdMatch[1] !== undefined ? cmdMatch[1] : line).trim();
+            current = { input: inputText, responseLines: [], meta: pendingMeta };
+            pendingMeta = null;
+            return;
+          }
+          if (current) current.responseLines.push(line);
+          else preamble.push(line);
+        });
+        if (current) exchanges.push(current);
+      } else {
+        let regex;
+        try { regex = new RegExp(document.getElementById('prompt-pattern').value); }
+        catch (e) { regex = /^\$/; }
+
+        let current = null;
+        lines.forEach(line => {
+          if (regex.test(line)) {
+            if (current) exchanges.push(current);
+            current = { input: line.replace(regex, '').trim() || line, responseLines: [], meta: null };
+          } else if (current) {
+            current.responseLines.push(line);
+          } else {
+            preamble.push(line);
+          }
+        });
+        if (current) exchanges.push(current);
+      }
+
+      exchanges = exchanges.filter(ex => ex.input.trim() || ex.responseLines.join('').trim());
+
+      lastParsed = { preamble, exchanges };
+      renderDocument(preamble, exchanges);
+    }
+
+    /* ─────────────────────────────────────────────────────────
+       Rendering
+    ───────────────────────────────────────────────────────── */
+    function renderDocument(preamble, exchanges) {
+      const container = document.getElementById('document-view');
+      container.innerHTML = '';
+
+      const preambleText = preamble.join('\n').trim();
+
+      if (!preambleText && !exchanges.length) {
+        container.innerHTML = `<div class="empty-state">No exchanges detected — check your prompt pattern against the pasted content.</div>`;
+        return;
+      }
+
+      if (preambleText) {
+        const el = document.createElement('div');
+        el.className = 'exchange';
+        el.innerHTML = `
+          <div class="block preamble-block">
+            <span class="block-header">Session Info</span>
+            <button class="copy-btn" onclick="copyText(this, ${JSON.stringify(preambleText)})">Copy</button>
+            <pre><code>${escapeHtml(preambleText)}</code></pre>
+          </div>`;
+        container.appendChild(el);
+      }
+
+      exchanges.forEach(ex => {
+        const responseText = ex.responseLines.join('\n').trim();
+        const el = document.createElement('div');
+        el.className = 'exchange';
+        const metaHtml = ex.meta
+          ? `<span class="meta-badge">${escapeHtml([ex.meta.user, ex.meta.cwd, ex.meta.time].filter(Boolean).join(' · '))}</span>`
+          : '';
+        el.innerHTML = `
+          <div class="block input-block">
+            <span class="block-header">Input / Command${metaHtml}</span>
+            <button class="copy-btn" onclick="copyText(this, ${JSON.stringify(ex.input)})">Copy</button>
+            <pre><code>${escapeHtml(ex.input)}</code></pre>
+          </div>
+          ${responseText ? `
+          <div class="block response-block">
+            <span class="block-header">Response / Output</span>
+            <button class="copy-btn" onclick="copyText(this, ${JSON.stringify(responseText)})">Copy</button>
+            <pre><code>${escapeHtml(responseText)}</code></pre>
+          </div>` : ''}
+        `;
+        container.appendChild(el);
+      });
+    }
+
+    /* ─────────────────────────────────────────────────────────
+       File upload
+    ───────────────────────────────────────────────────────── */
+    function handleFileUpload(event) {
+      const file = event.target.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        document.getElementById('raw-input').value = e.target.result;
+        parseSession();
+      };
+      reader.readAsText(file);
+    }
+
+    /* ─────────────────────────────────────────────────────────
+       Copy helpers & Exports
+    ───────────────────────────────────────────────────────── */
+    function copyText(btn, text) {
+      navigator.clipboard.writeText(text).then(() => {
+        const orig = btn.innerText;
+        btn.innerText = 'Copied!';
+        setTimeout(() => { btn.innerText = orig; }, 1500);
+      });
+    }
+
+    function showToast(msg) {
+      const t = document.getElementById('toast');
+      t.textContent = msg;
+      t.classList.add('show');
+      clearTimeout(showToast._timer);
+      showToast._timer = setTimeout(() => t.classList.remove('show'), 1800);
+    }
+
+    function exportMarkdown() {
+      if (!lastParsed || (!lastParsed.preamble.join('').trim() && !lastParsed.exchanges.length)) {
+        showToast('Nothing to export yet');
+        return;
+      }
+      let md = '';
+      const preambleText = lastParsed.preamble.join('\n').trim();
+      if (preambleText) {
+        md += `> Session Info\n\n\`\`\`text\n${preambleText}\n\`\`\`\n\n---\n\n`;
+      }
+      lastParsed.exchanges.forEach(ex => {
+        if (ex.meta) {
+          const metaLine = [ex.meta.user, ex.meta.cwd, ex.meta.time].filter(Boolean).join(' · ');
+          if (metaLine) md += `> ${metaLine}\n\n`;
+        }
+        md += `### Input\n\`\`\`bash\n${ex.input}\n\`\`\`\n\n`;
+        const responseText = ex.responseLines.join('\n').trim();
+        if (responseText) {
+          md += `### Response\n\`\`\`text\n${responseText}\n\`\`\`\n\n`;
+        }
+        md += `---\n\n`;
+      });
+      navigator.clipboard.writeText(md.trim()).then(() => showToast('Copied session as Markdown ✓'));
+    }
+
+    function exportStyledHtml() {
+      if (!lastParsed || (!lastParsed.preamble.join('').trim() && !lastParsed.exchanges.length)) {
+        showToast('Nothing to export yet');
+        return;
+      }
+      const vars = getComputedThemeVars();
+      const varsCss = Object.entries(vars).map(([k, v]) => `${k}: ${v};`).join(' ');
+      const bodyHtml = document.getElementById('document-view').innerHTML;
+      const styledHtml = `<div class="tsf-export" style="${varsCss} font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: var(--bg); color: var(--text); padding: 1.5rem; border-radius: 8px;">
+<style>
+.tsf-export .exchange{background:var(--card-bg);border:1px solid var(--border);border-radius:8px;overflow:hidden;margin-bottom:1.5rem;}
+.tsf-export .block{padding:1.25rem;position:relative;}
+.tsf-export .block-header{font-size:0.75rem;text-transform:uppercase;letter-spacing:0.05em;margin-bottom:0.5rem;font-weight:700;display:block;}
+.tsf-export .meta-badge{text-transform:none;letter-spacing:normal;font-weight:400;font-size:0.7rem;color:var(--muted);margin-left:0.6rem;font-family:'JetBrains Mono',monospace;}
+.tsf-export .input-block{background:var(--input-bubble);border-bottom:1px solid var(--border);}
+.tsf-export .input-block .block-header{color:#818cf8;}
+.tsf-export .response-block{background:var(--response-bubble);}
+.tsf-export .response-block .block-header{color:var(--accent);}
+.tsf-export .preamble-block .block-header{color:var(--muted);}
+.tsf-export pre{font-family:"JetBrains Mono",Consolas,Monaco,monospace;font-size:0.87rem;white-space:pre-wrap;word-break:break-word;line-height:1.5;margin:0;}
+.tsf-export .copy-btn{display:none;}
+</style>
+${bodyHtml}
+</div>`;
+      navigator.clipboard.writeText(styledHtml).then(() => showToast('Copied styled HTML fragment ✓'));
+    }
+
+    function exportAsPng() {
+      const target = document.getElementById('document-view');
+      if (!lastParsed || (!lastParsed.preamble.join('').trim() && !lastParsed.exchanges.length)) {
+        showToast('Nothing to export yet');
+        return;
+      }
+      showToast('Rendering PNG...');
+      
+      // Temporarily hide copy buttons during capture
+      const copyBtns = target.querySelectorAll('.copy-btn');
+      copyBtns.forEach(b => b.style.display = 'none');
+
+      html2canvas(target, {
+        backgroundColor: getComputedStyle(document.documentElement).getPropertyValue('--bg').trim(),
+        scale: 2
+      }).then(canvas => {
+        copyBtns.forEach(b => b.style.display = '');
+        const link = document.createElement('a');
+        link.download = 'terminal-session.png';
+        link.href = canvas.toDataURL('image/png');
+        link.click();
+        showToast('Exported PNG ✓');
+      }).catch(() => {
+        copyBtns.forEach(b => b.style.display = '');
+        showToast('PNG capture failed');
+      });
+    }
+
+    function savePage() {
+      const htmlContent = "<!DOCTYPE html>\n" + document.documentElement.outerHTML;
+      const blob = new Blob([htmlContent], { type: 'text/html' });
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = 'Terminal Session Formatter (v.03-0910).html';
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(a.href);
+    }
+
+    function escapeHtml(str) {
+      return str
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#039;");
+    }
+
+    /* ─────────────────────────────────────────────────────────
+       Init
+    ───────────────────────────────────────────────────────── */
+    document.getElementById('preset-select').addEventListener('change', updatePresetUI);
+    document.getElementById('theme-select').addEventListener('change', e => applyTheme(e.target.value));
+    updatePresetUI();
+    applyTheme('amber');
+  </script>
+
+</body></html>
