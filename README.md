@@ -2,7 +2,7 @@
 
 Personal repository for coding files, documentation, guides, and automations.
 
-URL: https://adrianneetc-commits.github.io/Catalog-Archive/
+URL: [CATALOG ARCHIVE HOMEPAGE](https://adrianneetc-commits.github.io/Catalog-Archive/)
   - main/root for index page.
 
 ## Contents
