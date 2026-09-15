@@ -1,6 +1,6 @@
-# Catalog-Archive
+## Github Map: Catalog-Archive
 
-Personal repository for coding files, documentation, guides, and automations.
+> Personal repository for coding files, documentation, guides, and automations.
 
 URL: [CATALOG ARCHIVE HOMEPAGE](https://adrianneetc-commits.github.io/Catalog-Archive/)
   - main/root for index page.
