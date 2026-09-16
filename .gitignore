@@ -1,0 +1,19 @@
+# Dependency directories
+node_modules/
+
+# Local offline bundled assets
+desktop-app/resources/libs/
+
+# Testing reports and outputs
+playwright-report/
+test-results/
+.wrangler/
+.pytest_cache/
+__pycache__/
+
+# Local AI/tooling state
+.agents/
+
+# OS files
+.DS_Store
+Thumbs.db
